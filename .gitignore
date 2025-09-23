@@ -1,0 +1,13 @@
+# Virtual Environment
+venv/
+
+# Environment variables
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+
+# User data (opsional, tapi disarankan)
+users/
+conversations/
