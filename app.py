@@ -8,6 +8,7 @@ from moviepy import ImageSequenceClip
 from flask import send_file 
 from werkzeug.utils import secure_filename
 import datetime
+import requests # Import the requests library
 
 # Import library pihak ketiga
 import google.generativeai as genai
@@ -54,6 +55,10 @@ snap = midtransclient.Snap(
     server_key=os.getenv("MIDTRANS_SERVER_KEY"),
     client_key=os.getenv("MIDTRANS_CLIENT_KEY")
 )
+
+# API Key dan URL untuk GPTGod
+GPTGOD_API_KEY = "sk-fIbiejLJvNDCB2kmGoXqFooxPrDchwaI3O7RHvHDk6XNVJ0L"
+GPTGOD_BASE_URL = "https://api.gptgod.online/v1/chat/completions"
 
 model = None
 try:
@@ -124,6 +129,21 @@ def api_key_required(f):
         
         return f(user, *args, **kwargs)
     return decorated_function
+
+# Fungsi helper untuk memanggil GPTGod API
+def call_gptgod_api(prompt, model_name="gpt-3.5-turbo"):
+    headers = {
+        "Authorization": f"Bearer {GPTGOD_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    data = {
+        "model": model_name,
+        "messages": [{"role": "user", "content": prompt}]
+    }
+    
+    response = requests.post(GPTGOD_BASE_URL, headers=headers, json=data)
+    response.raise_for_status()
+    return response.json()["choices"][0]["message"]["content"]
 
 
 # --- 3. RUTE APLIKASI ---
@@ -215,23 +235,27 @@ def allowed_file(filename):
 
 @app.route('/auth')
 def auth():
-    token = google.authorize_access_token()
-    user_info = google.get('userinfo').json()
-    
-    user = User.query.get(user_info['id'])
-    if not user:
-        user = User(id=user_info['id'], name=user_info['name'], email=user_info['email'], picture=user_info['picture'])
-        db.session.add(user)
-    else:
-        user.name = user_info['name']
-        user.picture = user_info['picture']
-    db.session.commit()
+    try:
+        token = google.authorize_access_token()
+        user_info = google.get('userinfo').json()
+        
+        user = User.query.get(user_info['id'])
+        if not user:
+            user = User(id=user_info['id'], name=user_info['name'], email=user_info['email'], picture=user_info['picture'])
+            db.session.add(user)
+        else:
+            user.name = user_info['name']
+            user.picture = user_info['picture']
+        db.session.commit()
 
-    session['user_id'] = user.id
-    user_dir = os.path.join("users", user.id)
-    if not os.path.exists(user_dir):
-        os.makedirs(user_dir)
-    return redirect('/')
+        session['user_id'] = user.id
+        user_dir = os.path.join("users", user.id)
+        if not os.path.exists(user_dir):
+            os.makedirs(user_dir)
+        return redirect('/')
+    except Exception as e:
+        app.logger.error(f"Error during Google Auth: {e}")
+        return redirect(url_for('show_login_page'))
 
 
 @app.route('/logout')
@@ -399,6 +423,7 @@ def chat():
     conversation_id = request.form.get('conversation_id')
     image_file = request.files.get('image')
     temperature_str = request.form.get('temperature', '0.7')
+    model_choice = request.form.get('model_choice', 'gemini')
     
     try:
         temperature = max(0.0, min(1.0, float(temperature_str)))
@@ -428,44 +453,66 @@ def chat():
             contents.append(default_prompt)
             prompt_for_history = default_prompt
         
-        # Hitung token sebelum memanggil API
-        try:
-            count_response = genai.GenerativeModel('gemini-1.5-flash-latest').count_tokens(contents)
-            tokens_in = count_response.total_tokens
-        except Exception as e:
-            app.logger.error(f"Error saat menghitung token: {e}")
-            tokens_in = 0
+        # Hitung token sebelum memanggil API (hanya untuk Gemini)
+        if model_choice == 'gemini':
+            try:
+                count_response = genai.GenerativeModel('gemini-1.5-flash-latest').count_tokens(contents)
+                tokens_in = count_response.total_tokens
+            except Exception as e:
+                app.logger.error(f"Error saat menghitung token: {e}")
+                tokens_in = 0
 
-        # Cek apakah token masih cukup
-        if user.tokens_used_today + tokens_in >= MAX_DAILY_TOKENS:
-            return Response("Batas penggunaan harian Anda telah tercapai. Silakan coba lagi besok.", status=429)
+            # Cek apakah token masih cukup
+            if user.tokens_used_today + tokens_in >= MAX_DAILY_TOKENS:
+                return Response("Batas penggunaan harian Anda telah tercapai. Silakan coba lagi besok.", status=429)
 
-        # Perbarui jumlah token yang digunakan di database
-        user.tokens_used_today += tokens_in
-        db.session.commit()
-        
+            # Perbarui jumlah token yang digunakan di database
+            user.tokens_used_today += tokens_in
+            db.session.commit()
+            
         generation_config = genai.types.GenerationConfig(temperature=temperature)
         
         def stream_response_generator():
             full_response_text = ""
-            chat_session = model.start_chat(history=history)
-            
-            try:
+
+            # Logika untuk memilih API yang akan digunakan
+            if model_choice == 'gemini':
+                chat_session = model.start_chat(history=history)
                 response_stream = chat_session.send_message(contents, stream=True, generation_config=generation_config)
                 for chunk in response_stream:
                     if chunk.text:
                         yield chunk.text
                         full_response_text += chunk.text
                 
-                # Setelah respons selesai, hitung token output dan perbarui
+                # Setelah respons selesai, hitung token output dan perbarui (khusus Gemini)
                 tokens_out = model.count_tokens(full_response_text).total_tokens
                 user.tokens_used_today += tokens_out
                 db.session.commit()
-                
-            except Exception as e:
-                app.logger.error(f"Error saat streaming chat: {e}")
-                yield f"Terjadi kesalahan: {e}"
 
+            elif model_choice.startswith('gptgod_'):
+                # Panggil API GPTGod
+                try:
+                    # Ambil nama model dari pilihan (misalnya 'gpt-4-all')
+                    gptgod_model_name = model_choice.split('_')[1]
+                    headers = {
+                        "Authorization": f"Bearer {GPTGOD_API_KEY}",
+                        "Content-Type": "application/json"
+                    }
+                    data = {
+                        "model": gptgod_model_name,
+                        "messages": [{"role": "user", "content": prompt_for_history}]
+                    }
+                    response = requests.post(GPTGOD_BASE_URL, headers=headers, json=data)
+                    response.raise_for_status()
+                    
+                    response_json = response.json()
+                    full_response_text = response_json["choices"][0]["message"]["content"]
+                    yield full_response_text
+
+                except requests.exceptions.RequestException as e:
+                    full_response_text = f"Terjadi kesalahan dengan GPTGod API: {e}"
+                    yield full_response_text
+            
             # Simpan riwayat setelah respons selesai
             history.append({'role': 'user', 'parts': [prompt_for_history]})
             history.append({'role': 'model', 'parts': [full_response_text]})
@@ -477,6 +524,18 @@ def chat():
     except Exception as e:
         app.logger.error(f"Error saat memproses permintaan chat: {e}")
         return Response(f"Terjadi kesalahan: {e}", status=500)
+
+
+@app.route('/get_tokens_remaining')
+def get_tokens_remaining():
+    if 'user_id' not in session:
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    user = User.query.get(session['user_id'])
+    MAX_DAILY_TOKENS = 250000
+    tokens_remaining = MAX_DAILY_TOKENS - user.tokens_used_today
+    
+    return jsonify({'tokens_remaining': tokens_remaining})
 
 
 # --- 4. MENJALANKAN APLIKASI ---

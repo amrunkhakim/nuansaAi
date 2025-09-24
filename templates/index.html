@@ -119,6 +119,16 @@
         </div>
         {% endif %}
         <div class="p-4 space-y-2 border-t border-slate-700">
+            <label for="model-selector" class="text-sm font-medium text-slate-300">Pilih Model AI</label>
+            <select id="model-selector" class="w-full h-10 bg-slate-700 rounded-lg text-white appearance-none cursor-pointer p-2">
+                <option value="gemini">Gemini</option>
+                <option value="gptgod_gpt-3.5-turbo">GPTGod - gpt-3.5-turbo</option>
+                <option value="gptgod_gpt-4-all">GPTGod - gpt-4-all</option>
+              
+
+            </select>
+        </div>
+        <div class="p-4 space-y-2 border-t border-slate-700">
             <label for="temperature-slider" class="text-sm font-medium text-slate-300 flex justify-between items-center">
                 <span>Kreativitas AI</span>
                 <span id="temperature-value" class="font-bold text-sky-400">0.7</span>

@@ -31,6 +31,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // Ambil semua tombol rekomendasi
     const suggestionButtons = document.querySelectorAll('.suggestion-btn');
 
+    // Tambahkan elemen untuk memilih model AI
+    const modelSelector = document.getElementById('model-selector');
+
+
     // --- Fungsi Helper ---
     function clearChatBox() {
         chatBox.innerHTML = '';
@@ -185,7 +189,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Fungsi baru untuk memperbarui token dari server
     async function updateTokensRemaining() {
         try {
             const response = await fetch('/get_tokens_remaining');
@@ -198,7 +201,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Tambahkan event listener untuk setiap tombol rekomendasi
     suggestionButtons.forEach(button => {
         button.addEventListener('click', () => {
             const text = button.innerText;
@@ -272,6 +274,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (message) formData.append('message', message);
         if (imageFile) formData.append('image', imageFile);
+        
+        // Tambahkan pilihan model ke formData
+        formData.append('model_choice', modelSelector.value);
 
         userInput.value = '';
         userInput.style.height = 'auto';
@@ -286,12 +291,11 @@ document.addEventListener('DOMContentLoaded', () => {
             let fullResponse = "";
             let doneStreaming = false;
 
-            // Pastikan kita menangani respons non-OK sebelum memulai streaming
             if (!response.ok) {
                 const errorText = await response.text();
                 addHistoryMessage('AI', errorText, currentConversationId);
                 hideThinkingIndicator();
-                doneStreaming = true; // Langsung hentikan proses streaming
+                doneStreaming = true;
             }
 
             if (!doneStreaming) {
@@ -316,7 +320,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 responseDiv.querySelectorAll('pre').forEach(addCopyButton);
                 responseDiv.querySelectorAll('pre code').forEach(block => hljs.highlightElement(block));
                 
-                // Tambahkan tombol umpan balik setelah respons lengkap diterima
                 const feedbackContainer = document.createElement('div');
                 feedbackContainer.className = 'feedback-container flex gap-2 mt-2 pt-2 border-t border-slate-700';
                 feedbackContainer.innerHTML = `
@@ -334,13 +337,11 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally {
             isGenerating = false;
             toggleSubmitButton();
-            // Perbarui sisa token setelah permintaan selesai
             updateTokensRemaining();
         }
     });
 
     chatBox.addEventListener('click', function(e) {
-        // Logika untuk tombol Salin Kode
         if (e.target && e.target.classList.contains('copy-code-btn')) {
             const pre = e.target.closest('pre');
             const code = pre.querySelector('code').innerText;
@@ -350,16 +351,13 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
         
-        // Logika untuk tombol Umpan Balik
         const feedbackBtn = e.target.closest('.feedback-btn');
         if (feedbackBtn) {
             const conversationId = feedbackBtn.dataset.id;
             const isPositive = feedbackBtn.dataset.isPositive === 'true';
 
-            // Kirim umpan balik ke server
             sendFeedback(conversationId, isPositive);
             
-            // Nonaktifkan semua tombol umpan balik untuk respons ini
             const allBtns = feedbackBtn.closest('.feedback-container').querySelectorAll('.feedback-btn');
             allBtns.forEach(btn => {
                 btn.classList.add('inactive');
@@ -380,5 +378,5 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Inisialisasi ---
     loadConversations();
     toggleSubmitButton();
-    updateTokensRemaining(); // Panggil saat inisialisasi untuk menampilkan sisa token
+    updateTokensRemaining();
 });
