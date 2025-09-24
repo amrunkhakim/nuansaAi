@@ -73,6 +73,12 @@ def logout():
     session.pop('user', None)
     return redirect(url_for('show_login_page'))
 
+@app.route('/pricing')
+def pricing():
+    if 'user' not in session:
+        return redirect(url_for('show_login_page'))
+    return render_template('pricing.html', user=session.get('user'))
+
 # --- Fungsi Helper & API Chat ---
 def get_user_conversations_dir():
     if 'user' in session:
@@ -80,7 +86,6 @@ def get_user_conversations_dir():
         return os.path.join(BASE_USERS_DIR, user_id)
     return None
 
-# [FIX] Fungsi untuk mendapatkan judul yang benar
 def get_conversation_title(file_path):
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
@@ -117,7 +122,6 @@ def get_history(conversation_id):
     if os.path.exists(filepath):
         with open(filepath, 'r', encoding='utf-8') as f:
             history = json.load(f)
-            # Jangan tampilkan 2 pesan sistem pertama di UI
             history_to_show = history[2:] if len(history) > 2 else []
             return Response(json.dumps(history_to_show), mimetype='application/json')
     return Response(json.dumps([]), mimetype='application/json')
@@ -128,17 +132,22 @@ def new_chat():
     conversation_id = str(int(time.time()))
     return Response(json.dumps({'conversation_id': conversation_id}), mimetype='application/json')
 
-# [FINAL] Fungsi chat dengan dukungan STREAMING
 @app.route('/chat', methods=['POST'])
 def chat():
-    if 'user' not in session:
-        return Response("Unauthorized", status=401)
-    if not model:
-        return Response("Model AI tidak terinisialisasi.", status=500)
+    if 'user' not in session: return Response("Unauthorized", status=401)
+    if not model: return Response("Model AI tidak terinisialisasi.", status=500)
 
     user_message = request.form.get('message')
     conversation_id = request.form.get('conversation_id')
     image_file = request.files.get('image')
+
+    # [PENGEMBANGAN] Ambil pengaturan temperatur dari frontend
+    temperature_str = request.form.get('temperature', '0.7')
+    try:
+        # Batasi nilai temperature antara 0.0 dan 1.0
+        temperature = max(0.0, min(1.0, float(temperature_str)))
+    except (ValueError, TypeError):
+        temperature = 0.7 # Nilai default jika input tidak valid
 
     if not user_message and not image_file: return Response("Pesan atau gambar tidak boleh kosong", status=400)
     if not conversation_id: return Response("Conversation ID tidak ditemukan", status=400)
@@ -171,11 +180,22 @@ def chat():
             default_prompt = "Jelaskan gambar ini secara detail."
             contents.append(default_prompt)
             prompt_for_history = default_prompt
+        
+        # [PENGEMBANGAN] Buat konfigurasi generasi untuk model
+        generation_config = genai.types.GenerationConfig(
+            temperature=temperature
+        )
 
         def stream_response_generator():
             full_response_text = ""
             chat_session = model.start_chat(history=history)
-            response_stream = chat_session.send_message(contents, stream=True)
+            
+            # [PENGEMBANGAN] Gunakan generation_config saat mengirim pesan
+            response_stream = chat_session.send_message(
+                contents, 
+                stream=True,
+                generation_config=generation_config
+            )
             
             for chunk in response_stream:
                 if chunk.text:

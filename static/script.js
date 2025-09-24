@@ -14,16 +14,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const newChatButton = document.getElementById('new-chat-button');
     const welcomeMessage = document.getElementById('welcome-message');
 
+    // [PENAMBAHAN] Ambil elemen untuk slider temperature
+    const temperatureSlider = document.getElementById('temperature-slider');
+    const temperatureValue = document.getElementById('temperature-value');
+
     // Untuk mobile
     const menuToggle = document.getElementById('menu-toggle');
     const sidebar = document.querySelector('aside');
 
     let currentConversationId = null;
-    let isGenerating = false; // Flag untuk menandai jika AI sedang merespons
+    let isGenerating = false;
 
     // --- Fungsi Helper ---
     function clearChatBox() {
-        chatBox.innerHTML = ''; // Hapus semua pesan
+        chatBox.innerHTML = '';
     }
 
     function toggleSubmitButton() {
@@ -32,7 +36,6 @@ document.addEventListener('DOMContentLoaded', () => {
         submitBtn.disabled = !hasText && !hasImage;
     }
     
-    // Menambahkan pesan pengguna ke UI, lengkap dengan gambar jika ada
     function addUserMessageWithImage(message, imageFile) {
         welcomeMessage.classList.add('hidden');
         const messageDiv = document.createElement('div');
@@ -56,7 +59,6 @@ document.addEventListener('DOMContentLoaded', () => {
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    // Menambahkan pesan dari history (tanpa gambar)
     function addHistoryMessage(sender, message) {
         const messageDiv = document.createElement('div');
         messageDiv.className = 'flex items-start gap-3';
@@ -80,7 +82,6 @@ document.addEventListener('DOMContentLoaded', () => {
         chatBox.scrollTop = chatBox.scrollHeight;
     }
     
-    // [FITUR BARU] Menambahkan tombol 'Salin' ke blok kode
     function addCopyButton(preElement) {
         const copyButton = document.createElement('button');
         copyButton.className = 'copy-code-btn';
@@ -105,7 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function loadConversationHistory(id) {
-        if (isGenerating) return; // Jangan ganti chat jika AI sedang menulis
+        if (isGenerating) return;
         welcomeMessage.classList.add('hidden');
         clearChatBox();
         currentConversationId = id;
@@ -133,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
         imageInput.value = '';
         imagePreviewContainer.classList.add('hidden');
         toggleSubmitButton();
-        await loadConversations(); // Muat ulang untuk memastikan list bersih
+        await loadConversations();
         document.querySelectorAll('#conversation-list button').forEach(btn => btn.classList.remove('bg-slate-700'));
     }
 
@@ -170,6 +171,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // [PENAMBAHAN] Event listener untuk memperbarui tampilan nilai slider
+    temperatureSlider.addEventListener('input', () => {
+        if (temperatureValue) {
+            temperatureValue.innerText = parseFloat(temperatureSlider.value).toFixed(1);
+        }
+    });
+
     // [LOGIKA UTAMA] Pengiriman Form dengan STREAMING
     chatForm.addEventListener('submit', async (e) => {
         e.preventDefault();
@@ -177,7 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const imageFile = imageInput.files[0];
         if (!message && !imageFile || isGenerating) return;
 
-        isGenerating = true; // AI mulai bekerja
+        isGenerating = true;
         toggleSubmitButton();
 
         if (!currentConversationId) {
@@ -190,6 +198,10 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const formData = new FormData();
         formData.append('conversation_id', currentConversationId);
+        
+        // [PENAMBAHAN] Kirim nilai temperature ke backend
+        formData.append('temperature', temperatureSlider.value);
+
         if (message) formData.append('message', message);
         if (imageFile) formData.append('image', imageFile);
 
@@ -219,11 +231,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const { value, done } = await reader.read();
                 if (done) break;
                 fullResponse += decoder.decode(value, { stream: true });
-                responseDiv.innerHTML = marked.parse(fullResponse + "▐"); // Tambahkan kursor berkedip
+                responseDiv.innerHTML = marked.parse(fullResponse + "▐");
                 chatBox.scrollTop = chatBox.scrollHeight;
             }
             
-            responseDiv.innerHTML = marked.parse(fullResponse); // Hapus kursor
+            responseDiv.innerHTML = marked.parse(fullResponse);
             responseDiv.querySelectorAll('pre').forEach(addCopyButton);
             responseDiv.querySelectorAll('pre code').forEach(block => hljs.highlightElement(block));
             
@@ -233,12 +245,11 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (error) {
             addHistoryMessage('AI', `Terjadi kesalahan: ${error.message}`);
         } finally {
-            isGenerating = false; // AI selesai bekerja
+            isGenerating = false;
             toggleSubmitButton();
         }
     });
 
-    // Listener untuk tombol Salin
     chatBox.addEventListener('click', function(e) {
         if (e.target && e.target.classList.contains('copy-code-btn')) {
             const pre = e.target.closest('pre');
@@ -250,7 +261,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Listener untuk menu mobile
     if (menuToggle && sidebar) {
         menuToggle.addEventListener('click', () => {
             sidebar.classList.toggle('hidden');

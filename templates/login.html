@@ -19,17 +19,69 @@
     <link rel="apple-touch-icon" sizes="180x180" href="https://www.nuansacoding.com/assets/img/apple-touch-icon.png">
 
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <style>
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fade-in 0.7s ease-out forwards;
+        }
+        
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: radial-gradient(circle at top left, hsla(210, 40%, 20%, 0.5) 0%, transparent 40%),
+                              radial-gradient(circle at bottom right, hsla(190, 60%, 30%, 0.6) 0%, transparent 50%);
+            background-size: cover;
+            z-index: -1;
+        }
+    </style>
 </head>
-<body class="bg-slate-900 flex items-center justify-center h-screen">
-    <div class="text-center">
-        <img src="https://nuansacoding.com/assets/img/ncAc.png" alt="Logo Nuansa Coding" class="mx-auto mb-4 w-32 h-32">
+<body class="bg-slate-900 text-white font-sans h-screen overflow-hidden">
+    <main class="w-full max-w-6xl mx-auto p-8 h-full grid grid-cols-1 md:grid-cols-2 items-center gap-16">
         
-        <h1 class="text-3xl font-bold text-sky-400 mb-6">Nuansa Coding AI Agent</h1>
+        <div class="hidden md:block text-left animate-fade-in" style="animation-delay: 100ms;">
+            <div class="flex items-center gap-4 mb-6">
+                <img src="https://nuansacoding.com/assets/img/ncAc.png" alt="Logo Nuansa Coding" class="w-16 h-16">
+                <div>
+                    <h1 class="text-3xl font-bold text-white">Nuansa Coding</h1>
+                    <p class="text-xl text-sky-400">AI Agent</p>
+                </div>
+            </div>
+            <p class="text-slate-300 mb-6 text-lg">
+                Asisten AI cerdas Anda untuk mengubah ide menjadi kenyataan. Dapatkan jawaban instan, buat kode, dan analisis data dengan mudah.
+            </p>
+            <ul class="space-y-3 text-slate-400">
+                <li class="flex items-center gap-3">
+                    <svg class="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span>Jawab pertanyaan kompleks</span>
+                </li>
+                <li class="flex items-center gap-3">
+                    <svg class="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l-4 4-4 4m5-12l-4 4"></path></svg>
+                    <span>Bantuan coding & debugging</span>
+                </li>
+                <li class="flex items-center gap-3">
+                     <svg class="w-5 h-5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l-1.586-1.586a2 2 0 00-2.828 0L6 14m6-6l.586-.586a2 2 0 012.828 0L18 10"></path></svg>
+                    <span>Analisis gambar dan data</span>
+                </li>
+            </ul>
+        </div>
         
-        <a href="{{ url_for('signin_google') }}" class="inline-flex items-center justify-center bg-white text-gray-800 font-semibold py-3 px-6 rounded-lg shadow-lg hover:bg-gray-200 transition-colors gap-3">
-            <svg class="w-6 h-6" viewBox="0 0 48 48"><defs><path id="a" d="M44.5 20H24v8.5h11.8C34.7 33.9 30.1 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-22 0-1.3-.2-2.7-.5-4z"/></defs><clipPath id="b"><use xlink:href="#a" overflow="visible"/></clipPath><path clip-path="url(#b)" fill="#FBBC05" d="M0 37V11l17 13z"/><path clip-path="url(#b)" fill="#EA4335" d="M0 11l17 13 7-6.1L48 14V0H0z"/><path clip-path="url(#b)" fill="#34A853" d="M0 37l30-23 7.9 1L48 0v48H0z"/><path clip-path="url(#b)" fill="#4285F4" d="M48 48L17 24l-4-3 35-10z"/></svg>
-            <span>Login dengan Google</span>
-        </a>
-    </div>
+        <div class="bg-slate-800/80 backdrop-blur-sm p-8 sm:p-12 rounded-2xl shadow-2xl w-full max-w-md mx-auto text-center animate-fade-in" style="animation-delay: 300ms;">
+            <img src="https://nuansacoding.com/assets/img/ncAc.png" alt="Logo Nuansa Coding" class="mx-auto mb-4 w-24 h-24">
+            
+            <h2 class="text-2xl font-bold text-white mb-2">Selamat Datang</h2>
+            <p class="text-slate-400 mb-8">Masuk untuk memulai percakapan</p>
+            
+            <a href="{{ url_for('signin_google') }}" class="w-full inline-flex items-center justify-center bg-white text-gray-700 font-semibold py-3 px-6 rounded-lg shadow-lg hover:bg-gray-200 transition-transform transform hover:scale-105 gap-3">
+                <svg class="w-6 h-6" viewBox="0 0 48 48"><defs><path id="a" d="M44.5 20H24v8.5h11.8C34.7 33.9 30.1 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-22 0-1.3-.2-2.7-.5-4z"/></defs><clipPath id="b"><use xlink:href="#a" overflow="visible"/></clipPath><path clip-path="url(#b)" fill="#FBBC05" d="M0 37V11l17 13z"/><path clip-path="url(#b)" fill="#EA4335" d="M0 11l17 13 7-6.1L48 14V0H0z"/><path clip-path="url(#b)" fill="#34A853" d="M0 37l30-23 7.9 1L48 0v48H0z"/><path clip-path="url(#b)" fill="#4285F4" d="M48 48L17 24l-4-3 35-10z"/></svg>
+                <span>Login dengan Google</span>
+            </a>
+        </div>
+        
+    </main>
 </body>
 </html>
