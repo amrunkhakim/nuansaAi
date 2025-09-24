@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dasbor API - Nuansa Ai Agent</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .api-key-input { background-color: #1e293b; font-family: 'Courier New', Courier, monospace; }
+        .code-block { background-color: #0f172a; border: 1px solid #334155; }
+    </style>
+</head>
+<body class="bg-slate-900 text-white font-sans min-h-screen">
+    <div class="container mx-auto px-4 py-12">
+        
+        <header class="max-w-4xl mx-auto mb-10">
+            <h1 class="text-4xl font-bold text-sky-400">Dasbor API Development</h1>
+            <p class="text-slate-400 mt-2">Gunakan kunci API Anda untuk mengintegrasikan kekuatan Nuansa AI ke dalam aplikasi Anda sendiri.</p>
+            <a href="{{ url_for('index') }}" class="text-sky-400 hover:text-sky-300 mt-4 inline-block">&larr; Kembali ke Chat</a>
+        </header>
+
+        <div class="max-w-4xl mx-auto space-y-8">
+            <div class="bg-slate-800 border border-slate-700 rounded-xl p-6">
+                <h2 class="text-xl font-semibold mb-4">Kunci API Rahasia Anda</h2>
+                <div class="flex items-center gap-2">
+                    <input id="api-key-input" type="text" class="api-key-input w-full p-2 rounded-md border border-slate-600" value="{{ user.api_key or 'Kunci belum dibuat' }}" readonly>
+                    <button id="copy-key-btn" class="bg-sky-500 font-semibold py-2 px-4 rounded-md hover:bg-sky-600 transition">Salin</button>
+                </div>
+                <div class="mt-4 flex justify-end">
+                    <form action="{{ url_for('regenerate_api_key') }}" method="POST" onsubmit="return confirm('Apakah Anda yakin? Kunci API lama Anda akan segera tidak valid.');">
+                        <button type="submit" class="text-sm text-amber-400 hover:text-amber-300">Buat Ulang Kunci</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="bg-slate-800 border border-slate-700 rounded-xl p-6">
+                <h2 class="text-xl font-semibold mb-4">Dokumentasi Cepat</h2>
+                <div class="space-y-4">
+                    <p><strong class="font-medium text-slate-300">Endpoint URL:</strong> <code class="text-green-400">{{ request.url_root }}api/v1/chat</code></p>
+                    <p><strong class="font-medium text-slate-300">Metode:</strong> <code class="text-green-400">POST</code></p>
+                    <p><strong class="font-medium text-slate-300">Header:</strong></p>
+                    <div class="code-block p-2 rounded-md text-sm"><code>Authorization: Bearer <span class="text-gray-400">[KUNCI_API_ANDA]</span></code><br><code>Content-Type: application/json</code></div>
+                    <p><strong class="font-medium text-slate-300">Body (JSON):</strong></p>
+                    <div class="code-block p-2 rounded-md text-sm"><pre><code>{
+    "prompt": "Halo, siapa kamu?"
+}</code></pre></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('copy-key-btn').addEventListener('click', function() {
+            const apiKeyInput = document.getElementById('api-key-input');
+            apiKeyInput.select();
+            apiKeyInput.setSelectionRange(0, 99999); // For mobile devices
+            navigator.clipboard.writeText(apiKeyInput.value);
+            
+            this.innerText = 'Disalin!';
+            setTimeout(() => { this.innerText = 'Salin'; }, 2000);
+        });
+    </script>
+</body>
+</html>

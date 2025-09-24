@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Upgrade ke Pro - Nuansa Ai Agent</title>
     <script src="https://cdn.tailwindcss.com"></script>
+     <script type="text/javascript"
+      src="https://app.sandbox.midtrans.com/snap/snap.js"
+      data-client-key="{{ client_key }}"></script>
     <style>
         @keyframes fade-in-up {
             from { opacity: 0; transform: translateY(20px); }
@@ -54,5 +57,58 @@
 
         </div>
     </div>
+    <script type="text/javascript">
+    document.getElementById('upgrade-button').addEventListener('click', function() {
+        // Tampilkan status loading jika perlu
+        this.innerText = 'Memproses...';
+        this.disabled = true;
+
+        // Panggil backend untuk mendapatkan token transaksi
+        fetch("{{ url_for('create_transaction') }}", {
+            method: 'POST',
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.token) {
+                // Jika token berhasil didapat, buka popup pembayaran Snap
+                window.snap.pay(data.token, {
+                    onSuccess: function(result){
+                        alert("Pembayaran berhasil!"); 
+                        console.log(result);
+                        // Redirect ke halaman dashboard atau halaman sukses
+                        window.location.href = "/"; 
+                    },
+                    onPending: function(result){
+                        alert("Menunggu pembayaran Anda!"); 
+                        console.log(result);
+                    },
+                    onError: function(result){
+                        alert("Pembayaran gagal!"); 
+                        console.log(result);
+                        // Kembalikan tombol ke keadaan semula
+                        document.getElementById('upgrade-button').innerText = 'Upgrade ke Pro';
+                        document.getElementById('upgrade-button').disabled = false;
+                    },
+                    onClose: function(){
+                        console.log('Popup pembayaran ditutup tanpa menyelesaikan transaksi');
+                        // Kembalikan tombol ke keadaan semula
+                        document.getElementById('upgrade-button').innerText = 'Upgrade ke Pro';
+                        document.getElementById('upgrade-button').disabled = false;
+                    }
+                });
+            } else {
+                alert('Gagal membuat transaksi: ' + (data.error || 'Kesalahan tidak diketahui'));
+                this.innerText = 'Upgrade ke Pro';
+                this.disabled = false;
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan. Silakan coba lagi.');
+            this.innerText = 'Upgrade ke Pro';
+            this.disabled = false;
+        });
+    });
+</script>
 </body>
 </html>
