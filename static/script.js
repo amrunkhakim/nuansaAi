@@ -1,6 +1,12 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // <-- Dapatkan elemen baru untuk input file dan pratinjau -->
     const chatForm = document.getElementById('chat-form');
     const userInput = document.getElementById('user-input');
+    const imageInput = document.getElementById('image-input'); // Elemen input file
+    const imagePreviewContainer = document.getElementById('image-preview-container'); // Kontainer untuk pratinjau
+    const imagePreview = document.getElementById('image-preview'); // Gambar pratinjau
+    const removeImageButton = document.getElementById('remove-image-button'); // Tombol hapus pratinjau
+
     const chatBox = document.getElementById('chat-box');
     const loadingIndicator = document.getElementById('loading-indicator');
     const conversationList = document.getElementById('conversation-list');
@@ -10,34 +16,62 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentConversationId = null;
 
     function clearChatBox() {
-        // Hapus semua elemen anak dari chatBox
         while (chatBox.firstChild) {
             chatBox.removeChild(chatBox.firstChild);
         }
-        // Tambahkan kembali loading indicator yang tersembunyi
         chatBox.appendChild(loadingIndicator);
+    }
+    
+    // <-- Fungsi baru untuk menambahkan pesan PENGGUNA dengan pratinjau gambar -->
+    function addUserMessageWithImage(message, imageFile) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'flex items-start gap-3 justify-end';
+
+        let imageHTML = '';
+        if (imageFile) {
+            // Gunakan URL.createObjectURL untuk menampilkan gambar lokal sebelum diunggah
+            const imageURL = URL.createObjectURL(imageFile);
+            imageHTML = `<img src="${imageURL}" alt="Image Preview" class="max-w-xs rounded-lg mt-2"/>`;
+        }
+
+        const textHTML = message ? `<p>${message}</p>` : '';
+
+        messageDiv.innerHTML = `
+            <div class="bg-slate-700 rounded-lg p-3 max-w-lg">
+                ${textHTML}
+                ${imageHTML}
+            </div>
+            <div class="bg-indigo-500 rounded-full p-2 text-white text-sm font-bold self-start">You</div>
+        `;
+        chatBox.insertBefore(messageDiv, loadingIndicator);
+        chatBox.scrollTop = chatBox.scrollHeight;
     }
 
     function addMessage(sender, message) {
-        // ... (Fungsi ini tidak berubah) ...
         const messageDiv = document.createElement('div');
         messageDiv.className = 'flex items-start gap-3';
         let contentHTML = message;
+        
         if (sender === 'AI') {
-            contentHTML = marked.parse(message);
-            messageDiv.innerHTML = `<div class="bg-sky-500 rounded-full p-2 text-white text-sm font-bold">AI</div><div class="bg-slate-800 rounded-lg p-3 max-w-2xl overflow-x-auto">${contentHTML}</div>`;
-        } else {
+            contentHTML = marked.parse(message); // Pastikan library 'marked' sudah di-load
+            messageDiv.innerHTML = `
+                <div class="bg-sky-500 rounded-full p-2 text-white text-sm font-bold self-start">AI</div>
+                <div class="bg-slate-800 rounded-lg p-3 max-w-2xl overflow-x-auto prose prose-invert">
+                    ${contentHTML}
+                </div>`;
+        } else { // Ini hanya akan digunakan untuk memuat history
             messageDiv.classList.add('justify-end');
-            messageDiv.innerHTML = `<div class="bg-slate-700 rounded-lg p-3 max-w-lg"><p>${message}</p></div><div class="bg-indigo-500 rounded-full p-2 text-white text-sm font-bold">You</div>`;
+            messageDiv.innerHTML = `
+                <div class="bg-slate-700 rounded-lg p-3 max-w-lg"><p>${message}</p></div>
+                <div class="bg-indigo-500 rounded-full p-2 text-white text-sm font-bold self-start">You</div>`;
         }
-        // Sisipkan sebelum loading indicator
+
         chatBox.insertBefore(messageDiv, loadingIndicator);
-        messageDiv.querySelectorAll('pre code').forEach(block => hljs.highlightElement(block));
+        messageDiv.querySelectorAll('pre code').forEach(block => hljs.highlightElement(block)); // Pastikan 'hljs' sudah di-load
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 
     async function loadConversations() {
-        // ... (Fungsi ini tidak berubah) ...
         const response = await fetch('/get_conversations');
         const conversations = await response.json();
         conversationList.innerHTML = '';
@@ -49,7 +83,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     async function loadConversationHistory(id) {
-        // ... (Fungsi ini tidak berubah) ...
+        welcomeMessage.classList.add('hidden');
+        chatBox.classList.remove('hidden');
         clearChatBox();
         currentConversationId = id;
         const response = await fetch(`/get_history/${id}`);
@@ -64,52 +99,87 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     conversationList.addEventListener('click', (e) => {
-        // ... (Fungsi ini tidak berubah) ...
         const button = e.target.closest('button');
         if (button) {
-            const id = button.dataset.id;
-            loadConversationHistory(id);
+            loadConversationHistory(button.dataset.id);
         }
     });
     
-    // Fungsi untuk memulai percakapan baru
     async function startNewChat() {
         const response = await fetch('/new_chat', { method: 'POST' });
         const data = await response.json();
         currentConversationId = data.conversation_id;
+        welcomeMessage.classList.add('hidden');
+        chatBox.classList.remove('hidden');
         clearChatBox();
-        addMessage('AI', 'Percakapan baru dimulai. Silakan ketik pesan Anda.');
         loadConversations();
         document.querySelectorAll('#conversation-list button').forEach(btn => btn.classList.remove('bg-slate-700'));
     }
 
     newChatButton.addEventListener('click', startNewChat);
 
-    // --- PERBAIKAN UTAMA ADA DI SINI ---
+    // <-- Fitur pratinjau gambar sebelum dikirim -->
+    imageInput.addEventListener('change', () => {
+        if (imageInput.files && imageInput.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                imagePreview.src = e.target.result;
+                imagePreviewContainer.classList.remove('hidden');
+            };
+            reader.readAsDataURL(imageInput.files[0]);
+        }
+    });
+
+    removeImageButton.addEventListener('click', () => {
+        imageInput.value = ''; // Hapus file yang dipilih
+        imagePreviewContainer.classList.add('hidden');
+    });
+
+    // --- [PERBAIKAN UTAMA] Logika Pengiriman Form ---
     chatForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+        
         const message = userInput.value.trim();
-        if (!message) return; // Jika pesan kosong, hentikan
+        const imageFile = imageInput.files[0];
 
-        // Jika belum ada percakapan aktif, buat dulu secara otomatis
-        if (!currentConversationId) {
-            const newChatResponse = await fetch('/new_chat', { method: 'POST' });
-            const newChatData = await newChatResponse.json();
-            currentConversationId = newChatData.conversation_id;
-            clearChatBox(); // Bersihkan pesan "selamat datang" awal
+        // <-- Validasi: Kirim hanya jika ada pesan teks atau gambar -->
+        if (!message && !imageFile) {
+            return;
         }
 
-        addMessage('You', message);
+        if (!currentConversationId) {
+            await startNewChat();
+        }
+
+        // Tampilkan pesan pengguna di UI
+        addUserMessageWithImage(message, imageFile);
+        
+        // <-- Buat objek FormData untuk mengirim file dan teks -->
+        const formData = new FormData();
+        formData.append('conversation_id', currentConversationId);
+        if (message) {
+            formData.append('message', message);
+        }
+        if (imageFile) {
+            formData.append('image', imageFile);
+        }
+
+        // Reset input setelah ditampilkan
         userInput.value = '';
+        imageInput.value = '';
+        imagePreviewContainer.classList.add('hidden');
+        
         loadingIndicator.classList.remove('hidden');
         chatBox.scrollTop = chatBox.scrollHeight;
 
         try {
+            // <-- Kirim request menggunakan FormData -->
             const response = await fetch('/chat', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message: message, conversation_id: currentConversationId }),
+                // HAPUS header 'Content-Type', browser akan mengaturnya secara otomatis untuk FormData
+                body: formData,
             });
+
             const data = await response.json();
             loadingIndicator.classList.add('hidden');
 
@@ -117,15 +187,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 addMessage('AI', `Error: ${data.error}`);
             } else {
                 addMessage('AI', data.response);
-                // Cek apakah ini pesan pertama dalam percakapan
                 const isFirstMessage = chatBox.querySelectorAll('.justify-end').length === 1;
                 if (isFirstMessage) {
-                    loadConversations(); // Muat ulang daftar history untuk menampilkan judul baru
+                    loadConversations();
                 }
             }
         } catch (error) {
             loadingIndicator.classList.add('hidden');
-            addMessage('AI', `Terjadi masalah koneksi.`);
+            addMessage('AI', 'Terjadi masalah koneksi atau kesalahan server.');
+            console.error('Fetch error:', error);
         }
     });
 
