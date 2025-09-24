@@ -286,48 +286,46 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch('/chat', { method: 'POST', body: formData });
             
-            const reader = response.body.getReader();
-            const decoder = new TextDecoder();
-            let fullResponse = "";
-            let doneStreaming = false;
-
+            // Cek respons non-OK terlebih dahulu
             if (!response.ok) {
                 const errorText = await response.text();
                 addHistoryMessage('AI', errorText, currentConversationId);
                 hideThinkingIndicator();
-                doneStreaming = true;
+                return;
             }
 
-            if (!doneStreaming) {
-                const aiMessageContainer = document.createElement('div');
-                aiMessageContainer.className = 'flex items-start gap-3';
-                aiMessageContainer.innerHTML = `
-                    <div class="bg-sky-500 rounded-full p-2 text-white text-sm font-bold self-start">AI</div>
-                    <div class="bg-slate-800 rounded-lg p-3 max-w-2xl overflow-x-auto prose prose-invert"></div>
-                `;
-                chatBox.appendChild(aiMessageContainer);
-                const responseDiv = aiMessageContainer.querySelector('.prose');
+            const aiMessageContainer = document.createElement('div');
+            aiMessageContainer.className = 'flex items-start gap-3';
+            aiMessageContainer.innerHTML = `
+                <div class="bg-sky-500 rounded-full p-2 text-white text-sm font-bold self-start">AI</div>
+                <div class="bg-slate-800 rounded-lg p-3 max-w-2xl overflow-x-auto prose prose-invert"></div>
+            `;
+            chatBox.appendChild(aiMessageContainer);
+            const responseDiv = aiMessageContainer.querySelector('.prose');
 
-                while (true) {
-                    const { value, done } = await reader.read();
-                    if (done) break;
-                    fullResponse += decoder.decode(value, { stream: true });
-                    responseDiv.innerHTML = marked.parse(fullResponse + "▐");
-                    chatBox.scrollTop = chatBox.scrollHeight;
-                }
-                
-                responseDiv.innerHTML = marked.parse(fullResponse);
-                responseDiv.querySelectorAll('pre').forEach(addCopyButton);
-                responseDiv.querySelectorAll('pre code').forEach(block => hljs.highlightElement(block));
-                
-                const feedbackContainer = document.createElement('div');
-                feedbackContainer.className = 'feedback-container flex gap-2 mt-2 pt-2 border-t border-slate-700';
-                feedbackContainer.innerHTML = `
-                    <button class="feedback-btn like-btn text-green-500 hover:text-green-400" data-id="${currentConversationId}" data-is-positive="true">👍</button>
-                    <button class="feedback-btn dislike-btn text-red-500 hover:text-red-400" data-id="${currentConversationId}" data-is-positive="false">👎</button>
-                `;
-                responseDiv.appendChild(feedbackContainer);
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let fullResponse = "";
+
+            while (true) {
+                const { value, done } = await reader.read();
+                if (done) break;
+                fullResponse += decoder.decode(value, { stream: true });
+                responseDiv.innerHTML = marked.parse(fullResponse + "▐");
+                chatBox.scrollTop = chatBox.scrollHeight;
             }
+            
+            responseDiv.innerHTML = marked.parse(fullResponse);
+            responseDiv.querySelectorAll('pre').forEach(addCopyButton);
+            responseDiv.querySelectorAll('pre code').forEach(block => hljs.highlightElement(block));
+            
+            const feedbackContainer = document.createElement('div');
+            feedbackContainer.className = 'feedback-container flex gap-2 mt-2 pt-2 border-t border-slate-700';
+            feedbackContainer.innerHTML = `
+                <button class="feedback-btn like-btn text-green-500 hover:text-green-400" data-id="${currentConversationId}" data-is-positive="true">👍</button>
+                <button class="feedback-btn dislike-btn text-red-500 hover:text-red-400" data-id="${currentConversationId}" data-is-positive="false">👎</button>
+            `;
+            responseDiv.appendChild(feedbackContainer);
 
             const isFirstMessage = chatBox.querySelectorAll('.justify-end').length === 1;
             if (isFirstMessage) await loadConversations();
