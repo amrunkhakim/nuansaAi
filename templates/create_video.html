@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buat Video dari Gambar</title>
+</head>
+<body>
+    <h2>Unggah Gambar untuk Membuat Video</h2>
+    <form action="/create_video" method="post" enctype="multipart/form-data">
+        <label for="images">Pilih Gambar (gunakan Ctrl/Cmd untuk memilih banyak):</label><br><br>
+        <input type="file" name="images[]" id="images" multiple accept="image/png, image/jpeg, image/gif"><br><br>
+        <button type="submit">Buat Video</button>
+    </form>
+</body>
+</html>
