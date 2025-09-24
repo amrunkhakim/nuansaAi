@@ -65,41 +65,31 @@
             left: 9px;
             animation-delay: 1s;
         }
-        .dot-flashing {
-            position: relative;
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background-color: #cbd5e1;
-            color: #cbd5e1;
-            animation: dotFlashing 1s infinite linear alternate;
-            animation-delay: 0.5s;
-        }
-        .dot-flashing::before, .dot-flashing::after {
-            content: '';
-            display: inline-block;
-            position: absolute;
-            top: 0;
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background-color: #cbd5e1;
-            color: #cbd5e1;
-            animation: dotFlashing 1s infinite linear alternate;
-        }
-        .dot-flashing::before {
-            left: -9px;
-            animation-delay: 0s;
-        }
-        .dot-flashing::after {
-            left: 9px;
-            animation-delay: 1s;
-        }
         @keyframes dotFlashing {
             0% { background-color: #cbd5e1; }
             50%, 100% { background-color: #475569; }
         }
-      
+        /* CSS untuk tombol umpan balik */
+        .feedback-btn {
+            font-size: 1.5rem;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0.25rem;
+            transition: transform 0.2s;
+        }
+        .feedback-btn:hover {
+            transform: scale(1.2);
+        }
+        .feedback-btn.active {
+            filter: grayscale(0%);
+            pointer-events: none;
+            cursor: default;
+        }
+        .feedback-btn.inactive {
+            filter: grayscale(80%);
+            opacity: 0.6;
+        }
     </style>
 </head>
 
@@ -141,6 +131,10 @@
         </div>
         
         <div class="p-4 border-t border-slate-700">
+            <div class="flex items-center justify-between mb-2 text-sm text-slate-300">
+                <span>Token Harian</span>
+                <span id="tokens-remaining" class="font-bold text-sky-400">{{ tokens_remaining }}</span>
+            </div>
             <div class="flex items-center gap-3 mb-3">
                 <img src="{{ user.picture }}" alt="User Picture" class="w-10 h-10 rounded-full">
                 <div>
@@ -171,22 +165,43 @@
             <div class="w-10 md:hidden"></div>
         </header>
 
-         <main class="flex-1 p-4 sm:p-6 overflow-y-auto relative">
-        <div id="chat-container" class="max-w-3xl mx-auto">
-            <div id="chat-box" class="space-y-6"></div>
-            <div id="welcome-message" class="flex flex-col items-center justify-center h-full text-center">
-                <img src="https://nuansacoding.com/assets/img/ncAc.png" alt="Logo Nuansa Coding" class="w-24 h-24 mb-4">
-                <h2 class="text-2xl font-bold text-slate-300">Bagaimana saya bisa bantu hari ini?</h2>
-            </div>
-            <div id="thinking-indicator" class="hidden flex items-center justify-start gap-3 p-4 bg-slate-800 rounded-lg max-w-[85%] sm:max-w-[70%] lg:max-w-[60%]">
-                <img src="https://nuansacoding.com/assets/img/ncAc.png" alt="Logo Nuansa Coding" class="w-8 h-8 rounded-full">
-                <div class="flex items-center gap-2 text-slate-400">
-                    Sedang berpikir
-                    <span class="dot-flashing"></span>
+        <main class="flex-1 p-4 sm:p-6 overflow-y-auto relative">
+            <div id="chat-container" class="max-w-3xl mx-auto">
+                <div id="chat-box" class="space-y-6"></div>
+                <div id="welcome-message" class="flex flex-col items-center justify-center h-full text-center">
+                    <img src="https://nuansacoding.com/assets/img/ncAc.png" alt="Logo Nuansa Coding" class="w-24 h-24 mb-4">
+                    <h2 class="text-2xl font-bold text-slate-300">Bagaimana saya bisa bantu hari ini?</h2>
+
+                    <div id="suggestion-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-6 w-full max-w-2xl">
+                        <button class="suggestion-btn bg-slate-800 hover:bg-slate-700 text-slate-300 p-4 rounded-lg text-left transition-colors">
+                            Buatkan saya sebuah kode Python.
+                        </button>
+                        <button class="suggestion-btn bg-slate-800 hover:bg-slate-700 text-slate-300 p-4 rounded-lg text-left transition-colors">
+                            Jelaskan konsep machine learning.
+                        </button>
+                        <button class="suggestion-btn bg-slate-800 hover:bg-slate-700 text-slate-300 p-4 rounded-lg text-left transition-colors">
+                            Bagaimana cara membuat API dengan Flask?
+                        </button>
+                        <button class="suggestion-btn bg-slate-800 hover:bg-slate-700 text-slate-300 p-4 rounded-lg text-left transition-colors">
+                            Berikan ide proyek web sederhana.
+                        </button>
+                        <button class="suggestion-btn bg-slate-800 hover:bg-slate-700 text-slate-300 p-4 rounded-lg text-left transition-colors">
+                            Tuliskan skrip SQL untuk join tabel.
+                        </button>
+                        <button class="suggestion-btn bg-slate-800 hover:bg-slate-700 text-slate-300 p-4 rounded-lg text-left transition-colors">
+                            Apa perbedaan antara AI dan ML?
+                        </button>
+                    </div>
+                </div>
+                <div id="thinking-indicator" class="hidden flex items-center justify-start gap-3 p-4 bg-slate-800 rounded-lg max-w-[85%] sm:max-w-[70%] lg:max-w-[60%]">
+                    <img src="https://nuansacoding.com/assets/img/ncAc.png" alt="Logo Nuansa Coding" class="w-8 h-8 rounded-full">
+                    <div class="flex items-center gap-2 text-slate-400">
+                        Sedang berpikir
+                        <span class="dot-flashing"></span>
+                    </div>
                 </div>
             </div>
-        </div>
-    </main>
+        </main>
         
         <footer class="bg-slate-900/80 backdrop-blur-sm pt-4 pb-4 sm:pb-6">
             <div class="max-w-3xl mx-auto px-4">
