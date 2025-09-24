@@ -18,6 +18,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const temperatureSlider = document.getElementById('temperature-slider');
     const temperatureValue = document.getElementById('temperature-value');
 
+    // [PENAMBAHAN] Ambil elemen untuk indikator loading
+    const thinkingIndicator = document.getElementById('thinking-indicator');
+
     // Untuk mobile
     const menuToggle = document.getElementById('menu-toggle');
     const sidebar = document.querySelector('aside');
@@ -30,6 +33,22 @@ document.addEventListener('DOMContentLoaded', () => {
         chatBox.innerHTML = '';
     }
 
+    // [PENAMBAHAN] Fungsi untuk menampilkan indikator loading
+    function showThinkingIndicator() {
+        thinkingIndicator.classList.remove('hidden');
+        thinkingIndicator.classList.add('flex');
+        chatBox.appendChild(thinkingIndicator);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    // [PENAMBAHAN] Fungsi untuk menyembunyikan indikator loading
+    function hideThinkingIndicator() {
+        if (thinkingIndicator.parentNode) {
+            thinkingIndicator.classList.add('hidden');
+            thinkingIndicator.classList.remove('flex');
+        }
+    }
+    
     function toggleSubmitButton() {
         const hasText = userInput.value.trim().length > 0;
         const hasImage = imageInput.files.length > 0;
@@ -195,7 +214,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         addUserMessageWithImage(message, imageFile);
-        
+        showThinkingIndicator(); // Tampilkan indikator loading
+
         const formData = new FormData();
         formData.append('conversation_id', currentConversationId);
         
@@ -213,7 +233,9 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch('/chat', { method: 'POST', body: formData });
             if (!response.ok) throw new Error(await response.text());
-
+            
+            hideThinkingIndicator(); // Sembunyikan indikator loading
+            
             const aiMessageContainer = document.createElement('div');
             aiMessageContainer.className = 'flex items-start gap-3';
             aiMessageContainer.innerHTML = `
