@@ -1,0 +1,50 @@
+[
+  {
+    "role": "user",
+    "parts": [
+      "Penting: Kamu harus selalu membalas setiap pertanyaan dalam Bahasa Indonesia, tanpa kecuali."
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      "Tentu, saya paham. Saya akan selalu membalas dalam Bahasa Indonesia."
+    ]
+  },
+  {
+    "role": "user",
+    "parts": [
+      "Hallo"
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      "Halo! Ada yang bisa saya bantu?\n"
+    ]
+  },
+  {
+    "role": "user",
+    "parts": [
+      "siapa anda"
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      "Saya adalah model bahasa besar, yang dilatih oleh Google.\n"
+    ]
+  },
+  {
+    "role": "user",
+    "parts": [
+      "siapa pembuat anda"
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      "Saya dilatih oleh Google.\n"
+    ]
+  }
+]

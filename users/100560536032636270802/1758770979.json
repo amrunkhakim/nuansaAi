@@ -1,0 +1,26 @@
+[
+  {
+    "role": "user",
+    "parts": [
+      "Penting: Kamu harus selalu membalas dalam Bahasa Indonesia."
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      "Tentu, saya paham. Saya akan membalas dalam Bahasa Indonesia."
+    ]
+  },
+  {
+    "role": "user",
+    "parts": [
+      "Jelaskan konsep machine learning."
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      "Terjadi kesalahan dengan GPTGod API: 403 Client Error: Forbidden for url: https://api.gptgod.online/v1/chat/completions"
+    ]
+  }
+]

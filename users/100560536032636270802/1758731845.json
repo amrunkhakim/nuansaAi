@@ -1,0 +1,26 @@
+[
+  {
+    "role": "user",
+    "parts": [
+      "Penting: Kamu harus selalu membalas dalam Bahasa Indonesia."
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      "Tentu, saya paham. Saya akan membalas dalam Bahasa Indonesia."
+    ]
+  },
+  {
+    "role": "user",
+    "parts": [
+      "Buatkan saya sebuah kode Python."
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      "Terjadi kesalahan dengan GPTGod API: 404 Client Error: Not Found for url: https://api.gptgod.online/v1/chat/completions"
+    ]
+  }
+]

@@ -1,0 +1,26 @@
+[
+  {
+    "role": "user",
+    "parts": [
+      "Penting: Kamu harus selalu membalas dalam Bahasa Indonesia."
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      "Tentu, saya paham. Saya akan membalas dalam Bahasa Indonesia."
+    ]
+  },
+  {
+    "role": "user",
+    "parts": [
+      "Tuliskan skrip SQL untuk join tabel."
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      "Berikut adalah contoh skrip SQL untuk melakukan join antara dua tabel dengan menggunakan `INNER JOIN`. Misalkan kita memiliki dua tabel, yaitu `customers` dan `orders`. Tabel `customers` berisi informasi pelanggan, sedangkan tabel `orders` berisi informasi tentang pesanan yang dibuat oleh pelanggan.\n\n### Struktur Tabel\n- **customers**\n  - `customer_id` (primary key)\n  - `name`\n  - `email`\n\n- **orders**\n  - `order_id` (primary key)\n  - `customer_id` (foreign key)\n  - `order_date`\n  - `total_amount`\n\n### SQL Join\nBerikut adalah contoh skrip SQL untuk melakukan join kedua tabel tersebut:\n\n```sql\nSELECT \n    customers.customer_id,\n    customers.name,\n    customers.email,\n    orders.order_id,\n    orders.order_date,\n    orders.total_amount\nFROM \n    customers\nINNER JOIN \n    orders ON customers.customer_id = orders.customer_id\nORDER BY \n    customers.customer_id;\n```\n\n### Penjelasan\n- `SELECT`: Memilih kolom-kolom yang ingin ditampilkan dari hasil query.\n- `FROM`: Menentukan tabel utama yang akan digunakan, dalam hal ini tabel `customers`.\n- `INNER JOIN`: Menyambungkan tabel `customers` dengan tabel `orders` berdasarkan kondisi yang ditentukan (`customers.customer_id = orders.customer_id`).\n- `ORDER BY`: Mengurutkan hasil query berdasarkan `customer_id`.\n\n### Jenis Join Lainnya\nSelain `INNER JOIN`, ada beberapa jenis join lainnya yang bisa digunakan, seperti:\n- `LEFT JOIN`: Mengambil semua data dari tabel kiri dan hanya data yang cocok dari tabel kanan.\n- `RIGHT JOIN`: Mengambil semua data dari tabel kanan dan hanya data yang cocok dari tabel kiri.\n- `FULL OUTER JOIN`: Mengambil semua data dari kedua tabel, baik yang cocok maupun yang tidak.\n\nJika Anda memerlukan contoh dengan jenis join yang lain atau tabel yang berbeda, silakan beri tahu saya!"
+    ]
+  }
+]

@@ -1,0 +1,26 @@
+[
+  {
+    "role": "user",
+    "parts": [
+      "Penting: Kamu harus selalu membalas dalam Bahasa Indonesia."
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      "Tentu, saya paham. Saya akan membalas dalam Bahasa Indonesia."
+    ]
+  },
+  {
+    "role": "user",
+    "parts": [
+      "Buatkan saya sebuah kode Python.\r\n\r\nYou"
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      "Tentu! Apa yang ingin Anda lakukan dengan kode Python tersebut? Misalnya, apakah Anda memerlukan kode untuk analisis data, pemrograman web, pemrosesan gambar, atau hal lainnya? Mohon berikan sedikit lebih banyak konteks agar saya bisa membantu dengan lebih baik."
+    ]
+  }
+]

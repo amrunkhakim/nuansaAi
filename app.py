@@ -52,7 +52,6 @@ class Conversation(db.Model):
     id = db.Column(db.String(100), primary_key=True)
     user_id = db.Column(db.String(100), db.ForeignKey('user.id'), nullable=False)
     title = db.Column(db.String(100), nullable=False, default="Percakapan Baru")
-    # History akan disimpan sebagai JSON string dalam kolom Text
     history = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=db.func.now(), index=True)
 
@@ -167,23 +166,35 @@ def show_login_page():
 
 @app.route('/signin-google')
 def signin_google():
-    # Gunakan url_for untuk redirect_uri agar lebih fleksibel
     redirect_uri = url_for('auth', _external=True)
     return google.authorize_redirect(redirect_uri)
 
+# =====================================================================
+# --- PERBAIKAN UTAMA BERDASARKAN ERROR LOG TERAKHIR ---
+# =====================================================================
 @app.route('/auth')
 def auth():
     try:
         token = google.authorize_access_token()
-        user_info = google.get('userinfo').json()
+        # PERBAIKAN: Gunakan metode .userinfo() yang benar
+        user_info = google.userinfo()
         
-        user = User.query.get(user_info['id'])
+        # PERBAIKAN: Gunakan 'sub' sebagai ID unik sesuai standar OpenID
+        user_id = user_info['sub']
+        user = User.query.get(user_id)
+        
         if not user:
-            user = User(id=user_info['id'], name=user_info['name'], email=user_info['email'], picture=user_info['picture'])
+            user = User(
+                id=user_id, 
+                name=user_info.get('name', 'Anonymous'), 
+                email=user_info.get('email'), 
+                picture=user_info.get('picture')
+            )
             db.session.add(user)
         else:
-            user.name = user_info['name']
-            user.picture = user_info['picture']
+            user.name = user_info.get('name', user.name)
+            user.picture = user_info.get('picture', user.picture)
+        
         db.session.commit()
 
         session['user_id'] = user.id
@@ -216,16 +227,14 @@ def get_history(conversation_id):
     if conv and conv.history:
         try:
             history = json.loads(conv.history)
-            # Hanya kirim pesan setelah prompt awal
             return jsonify(history[2:] if len(history) > 2 else [])
         except json.JSONDecodeError:
-            return jsonify([]) # Data histori korup
+            return jsonify([])
     return jsonify([])
 
 @app.route('/new_chat', methods=['POST'])
 def new_chat():
     if 'user_id' not in session: return jsonify({"error": "Unauthorized"}), 401
-    # Buat ID unik berbasis waktu dan entropy
     conversation_id = f"{int(time.time())}-{secrets.token_hex(4)}"
     return jsonify({'conversation_id': conversation_id})
 

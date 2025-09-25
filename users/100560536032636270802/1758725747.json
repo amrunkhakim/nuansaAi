@@ -1,0 +1,26 @@
+[
+  {
+    "role": "user",
+    "parts": [
+      "Penting: Kamu harus selalu membalas dalam Bahasa Indonesia."
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      "Tentu, saya paham. Saya akan membalas dalam Bahasa Indonesia."
+    ]
+  },
+  {
+    "role": "user",
+    "parts": [
+      "buatkan contoh bahasa pemrograman C++ dengan rapi"
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      "Berikut beberapa contoh program C++ yang relatif sederhana, disertai penjelasan:\n\n**Contoh 1: Program \"Hello, World!\"**\n\n```cpp\n#include <iostream>\n\nint main() {\n  std::cout << \"Hello, World!\" << std::endl;\n  return 0;\n}\n```\n\n* **`#include <iostream>`:**  Menyertakan library iostream, yang menyediakan fungsi untuk input dan output (seperti mencetak ke konsol).\n* **`int main() { ... }`:** Fungsi utama program.  Eksekusi program dimulai dari sini.  `int` menunjukkan bahwa fungsi akan mengembalikan nilai integer.\n* **`std::cout << \"Hello, World!\" << std::endl;`:** Mencetak teks \"Hello, World!\" ke konsol.  `std::cout` adalah objek output standar, `<<` adalah operator insertion, dan `std::endl` menambahkan baris baru.\n* **`return 0;`:** Mengembalikan nilai 0 ke sistem operasi, menandakan bahwa program berjalan sukses.\n\n\n**Contoh 2: Program Penjumlahan Dua Bilangan**\n\n```cpp\n#include <iostream>\n\nint main() {\n  int a, b, sum;\n\n  std::cout << \"Masukkan bilangan pertama: \";\n  std::cin >> a;\n\n  std::cout << \"Masukkan bilangan kedua: \";\n  std::cin >> b;\n\n  sum = a + b;\n\n  std::cout << \"Jumlahnya adalah: \" << sum << std::endl;\n  return 0;\n}\n```\n\n* **`int a, b, sum;`:** Mendeklarasikan tiga variabel integer: `a`, `b` untuk input, dan `sum` untuk menyimpan hasil penjumlahan.\n* **`std::cin >> a;`:** Membaca input dari pengguna dan menyimpannya ke variabel `a`.  `std::cin` adalah objek input standar, `>>` adalah operator extraction.\n* **`sum = a + b;`:** Melakukan penjumlahan dan menyimpan hasilnya ke variabel `sum`.\n\n\n**Contoh 3: Program Faktorial (menggunakan fungsi)**\n\n```cpp\n#include <iostream>\n\nlong long factorial(int n) {\n  if (n == 0) {\n    return 1;\n  } else {\n    return n * factorial(n - 1);\n  }\n}\n\nint main() {\n  int num;\n  std::cout << \"Masukkan bilangan bulat non-negatif: \";\n  std::cin >> num;\n\n  if (num < 0) {\n    std::cout << \"Faktorial tidak terdefinisi untuk bilangan negatif.\" << std::endl;\n  } else {\n    std::cout << \"Faktorial dari \" << num << \" adalah: \" << factorial(num) << std::endl;\n  }\n  return 0;\n}\n```\n\n* **`long long factorial(int n) { ... }`:**  Fungsi rekursif untuk menghitung faktorial.  `long long` digunakan karena faktorial dapat menjadi sangat besar.\n* **Fungsi rekursif:** Fungsi memanggil dirinya sendiri hingga mencapai kondisi basis (`n == 0`).\n\n\nContoh-contoh ini menunjukkan dasar-dasar pemrograman C++.  Anda dapat memodifikasi dan mengembangkannya lebih lanjut sesuai kebutuhan.  Ingatlah untuk mengkompilasi kode sebelum menjalankannya menggunakan compiler C++ seperti g++.\n"
+    ]
+  }
+]

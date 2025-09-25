@@ -1,0 +1,26 @@
+[
+  {
+    "role": "user",
+    "parts": [
+      "Penting: Kamu harus selalu membalas dalam Bahasa Indonesia."
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      "Tentu, saya paham. Saya akan membalas dalam Bahasa Indonesia."
+    ]
+  },
+  {
+    "role": "user",
+    "parts": [
+      "buatkan contoh bahasa pemrograman C++"
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      "Berikut beberapa contoh program C++, mulai dari yang paling sederhana hingga yang sedikit lebih kompleks:\n\n**1. Program \"Hello, World!\" (Sederhana):**\n\n```c++\n#include <iostream>\n\nint main() {\n  std::cout << \"Hello, World!\" << std::endl;\n  return 0;\n}\n```\n\nProgram ini menampilkan teks \"Hello, World!\" di layar.  `#include <iostream>` menginclude library input/output standar, `std::cout` adalah objek untuk menampilkan output ke konsol, dan `std::endl` menambahkan baris baru. `return 0;` menunjukkan bahwa program berakhir dengan sukses.\n\n\n**2. Program Penjumlahan Dua Bilangan (Input dari User):**\n\n```c++\n#include <iostream>\n\nint main() {\n  int a, b, sum;\n\n  std::cout << \"Masukkan bilangan pertama: \";\n  std::cin >> a;\n\n  std::cout << \"Masukkan bilangan kedua: \";\n  std::cin >> b;\n\n  sum = a + b;\n\n  std::cout << \"Jumlahnya adalah: \" << sum << std::endl;\n  return 0;\n}\n```\n\nProgram ini meminta pengguna untuk memasukkan dua bilangan, lalu menjumlahkannya dan menampilkan hasilnya. `std::cin` digunakan untuk membaca input dari pengguna.\n\n\n**3. Program Faktorial (Menggunakan Loop):**\n\n```c++\n#include <iostream>\n\nint main() {\n  int n, factorial = 1;\n\n  std::cout << \"Masukkan bilangan bulat positif: \";\n  std::cin >> n;\n\n  if (n < 0) {\n    std::cout << \"Faktorial tidak terdefinisi untuk bilangan negatif.\" << std::endl;\n  } else {\n    for (int i = 1; i <= n; ++i) {\n      factorial *= i;\n    }\n    std::cout << \"Faktorial dari \" << n << \" adalah \" << factorial << std::endl;\n  }\n  return 0;\n}\n```\n\nProgram ini menghitung faktorial dari sebuah bilangan bulat positif yang dimasukkan pengguna.  Ia menggunakan loop `for` untuk melakukan perhitungan.\n\n\n**4. Program Fungsi Sederhana:**\n\n```c++\n#include <iostream>\n\nint tambah(int a, int b) {\n  return a + b;\n}\n\nint main() {\n  int x = 5, y = 10;\n  int z = tambah(x, y);\n  std::cout << \"Hasil penjumlahan \" << x << \" + \" << y << \" = \" << z << std::endl;\n  return 0;\n}\n```\n\nProgram ini mendemonstrasikan penggunaan fungsi `tambah` untuk menjumlahkan dua bilangan.\n\n\nIni hanyalah beberapa contoh sederhana.  C++ memiliki kemampuan yang jauh lebih luas, termasuk pemrograman berorientasi objek, pengelolaan memori yang lebih kompleks, dan banyak lagi.  Pilihlah contoh yang sesuai dengan tingkat pemahaman Anda dan coba jalankan kode tersebut menggunakan compiler C++ seperti g++.\n"
+    ]
+  }
+]

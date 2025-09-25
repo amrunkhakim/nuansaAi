@@ -1,0 +1,26 @@
+[
+  {
+    "role": "user",
+    "parts": [
+      "Penting: Kamu harus selalu membalas dalam Bahasa Indonesia."
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      "Tentu, saya paham. Saya akan membalas dalam Bahasa Indonesia."
+    ]
+  },
+  {
+    "role": "user",
+    "parts": [
+      "Buatkan saya sebuah kode Python."
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      "Kode Python apa yang Anda inginkan?  Saya butuh informasi lebih lanjut untuk bisa membantu Anda.  Misalnya, kode untuk apa?  Apakah untuk:\n\n* **Menghitung sesuatu?** (misalnya, rata-rata, faktorial)\n* **Memproses data?** (misalnya, membaca file, memanipulasi string)\n* **Membuat program sederhana?** (misalnya, kalkulator, game sederhana)\n* **Interaksi dengan sistem operasi?** (misalnya, membuat direktori, menjalankan perintah)\n* **Atau hal lainnya?**\n\nSemakin detail permintaan Anda, semakin baik kode yang dapat saya berikan.\n"
+    ]
+  }
+]

@@ -1,0 +1,26 @@
+[
+  {
+    "role": "user",
+    "parts": [
+      "Penting: Kamu harus selalu membalas dalam Bahasa Indonesia."
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      "Tentu, saya paham. Saya akan membalas dalam Bahasa Indonesia."
+    ]
+  },
+  {
+    "role": "user",
+    "parts": [
+      "# set_pro.py\r\nfrom app import app, db, User\r\n\r\n# GANTI DENGAN EMAIL ANDA YANG TERDAFTAR DI APLIKASI\r\nMY_EMAIL = \"amrunkhakim@gmail.com\" \r\n\r\nwith app.app_context():\r\n    # Cari pengguna berdasarkan email\r\n    user_to_upgrade = User.query.filter_by(email=MY_EMAIL).first()\r\n\r\n    if user_to_upgrade:\r\n        # Ubah status langganan\r\n        user_to_upgrade.subscription_plan = 'Pro'\r\n        db.session.commit()\r\n        print(f\"✅ Pengguna '{user_to_upgrade.name}' dengan email '{MY_EMAIL}' berhasil diupgrade ke Pro.\")\r\n    else:\r\n        print(f\"❌ Pengguna dengan email '{MY_EMAIL}' tidak ditemukan di database.\")\r\n        print(\"Pastikan Anda sudah login setidaknya sekali dengan akun tersebut.\") agar bisa lebih dari satu email"
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      ""
+    ]
+  }
+]

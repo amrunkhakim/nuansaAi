@@ -1,0 +1,26 @@
+[
+  {
+    "role": "user",
+    "parts": [
+      "Penting: Kamu harus selalu membalas dalam Bahasa Indonesia."
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      "Tentu, saya paham. Saya akan membalas dalam Bahasa Indonesia."
+    ]
+  },
+  {
+    "role": "user",
+    "parts": [
+      "Buatkan saya sebuah kode Python."
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      "Tentu! Berikut adalah contoh kode Python sederhana yang membuat program untuk menghitung angka faktorial dari suatu bilangan:\n\n```python\ndef faktorial(n):\n    if n < 0:\n        return \"Tidak ada faktorial untuk bilangan negatif.\"\n    elif n == 0:\n        return 1\n    else:\n        hasil = 1\n        for i in range(1, n + 1):\n            hasil *= i\n        return hasil\n\n# Mengambil input dari pengguna\nangka = int(input(\"Masukkan sebuah angka: \"))\nprint(f\"Faktorial dari {angka} adalah {faktorial(angka)}\")\n```\n\nCara kerja kode ini:\n1. Menggunakan fungsi `faktorial` untuk menghitung faktorial.\n2. Mengambil input dari pengguna dan menghitung faktorial bilangan yang dimasukkan.\n3. Menampilkan hasil faktorial kepada pengguna.\n\nSilakan jalankan kode ini di lingkungan Python Anda! Jika Anda memerlukan contoh kode dalam konteks yang berbeda, beri tahu saya!"
+    ]
+  }
+]

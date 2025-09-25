@@ -1,0 +1,26 @@
+[
+  {
+    "role": "user",
+    "parts": [
+      "Penting: Kamu harus selalu membalas dalam Bahasa Indonesia."
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      "Tentu, saya paham. Saya akan membalas dalam Bahasa Indonesia."
+    ]
+  },
+  {
+    "role": "user",
+    "parts": [
+      "Berikan ide proyek web sederhana."
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      "Tentu! Berikut beberapa ide proyek web sederhana yang bisa kamu coba:  \n\n1. **To-Do List App**  \n   - Fitur: tambah, hapus, tandai selesai.  \n   - Tambahan opsional: simpan data di localStorage agar tidak hilang setelah refresh.  \n\n2. **Notes App**  \n   - Mirip sticky notes, bisa menulis catatan singkat.  \n   - Bisa kasih warna berbeda untuk setiap catatan.  \n\n3. **Weather App**  \n   - Menggunakan API cuaca (misalnya OpenWeatherMap).  \n   - Input nama kota, lalu tampilkan suhu, kondisi cuaca, dan ikon.  \n\n4. **Quote Generator**  \n   - Menampilkan kutipan acak dari API atau array lokal.  \n   - Bisa tambah tombol “Next Quote” dan fitur share ke media sosial.  \n\n5. **Personal Portfolio**  \n   - Website statis berisi biodata, skill, dan proyek.  \n   - Cocok untuk latihan layout dengan HTML + CSS.  \n\n6. **Quiz App**  \n   - Pertanyaan pilihan ganda sederhana.  \n   - Hitung skor di akhir.  \n\n7. **Recipe Finder**  \n   - Input bahan makanan, lalu tampilkan resep dari API (misalnya Edamam atau TheMealDB).  \n\n8. **Simple Blog**  \n   - Posting artikel pendek (disimpan di file JSON atau localStorage).  \n   - Tambahkan komentar sederhana.  \n\nMau saya buatkan contoh kode dasar untuk salah satu ide di atas?"
+    ]
+  }
+]

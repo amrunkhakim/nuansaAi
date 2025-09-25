@@ -1,0 +1,38 @@
+[
+  {
+    "role": "user",
+    "parts": [
+      "Penting: Kamu harus selalu membalas setiap pertanyaan dalam Bahasa Indonesia, tanpa kecuali."
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      "Tentu, saya paham. Saya akan selalu membalas dalam Bahasa Indonesia."
+    ]
+  },
+  {
+    "role": "user",
+    "parts": [
+      "buatkan kodepemrograan htnl"
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      "Berikut beberapa contoh kode pemrograman HTML, dari yang paling sederhana hingga yang sedikit lebih kompleks:\n\n**1. HTML Sederhana:**\n\n```html\n<!DOCTYPE html>\n<html>\n<head>\n  <title>Contoh HTML Sederhana</title>\n</head>\n<body>\n  <h1>Selamat Datang!</h1>\n  <p>Ini adalah paragraf pertama saya.</p>\n</body>\n</html>\n```\n\nKode ini akan menampilkan judul \"Contoh HTML Sederhana\" di tab browser dan teks \"Selamat Datang!\" sebagai heading level 1 serta \"Ini adalah paragraf pertama saya.\" sebagai paragraf di badan halaman.\n\n\n**2. HTML dengan beberapa elemen:**\n\n```html\n<!DOCTYPE html>\n<html>\n<head>\n  <title>Contoh HTML Lebih Lengkap</title>\n</head>\n<body>\n  <h1>Judul Halaman</h1>\n  <p>Ini adalah sebuah paragraf.  Anda dapat menambahkan <strong>teks tebal</strong> dan <em>teks miring</em>.</p>\n  <ul>\n    <li>Item 1</li>\n    <li>Item 2</li>\n    <li>Item 3</li>\n  </ul>\n  <a href=\"https://www.google.com\">Link ke Google</a>\n  <img src=\"gambar.jpg\" alt=\"Gambar saya\">\n</body>\n</html>\n```\n\nKode ini menambahkan beberapa elemen HTML seperti list (unordered list - `<ul>`), link (`<a>`), dan gambar (`<img>`).  Pastikan Anda memiliki file bernama `gambar.jpg` di folder yang sama dengan file HTML Anda jika ingin gambar ditampilkan.\n\n\n**3. HTML dengan Heading dan Paragraf yang lebih terstruktur:**\n\n```html\n<!DOCTYPE html>\n<html>\n<head>\n  <title>Contoh HTML Terstruktur</title>\n</head>\n<body>\n  <h1>Judul Utama</h1>\n  <h2>Sub Judul 1</h2>\n  <p>Paragraf tentang sub judul 1.</p>\n  <h2>Sub Judul 2</h2>\n  <p>Paragraf tentang sub judul 2.</p>\n  <h3>Sub Sub Judul 1</h3>\n  <p>Paragraf tentang sub sub judul 1.</p>\n</body>\n</html>\n```\n\nContoh ini menunjukkan penggunaan heading dengan berbagai level untuk membuat struktur dokumen yang lebih terorganisir.\n\nIngatlah untuk menyimpan kode ini dengan ekstensi `.html` (misalnya, `contoh.html`) dan membukanya di browser web Anda untuk melihat hasilnya.  Pilih contoh yang sesuai dengan kebutuhan Anda.  Jika Anda ingin contoh yang lebih spesifik, beritahu saya apa yang ingin Anda capai dengan HTML tersebut.\n"
+    ]
+  },
+  {
+    "role": "user",
+    "parts": [
+      "buatkan saya aplikasi sederhna menggunakan futter"
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      "Saya tidak bisa *membuat* aplikasi Flutter untuk Anda secara langsung.  Saya adalah model bahasa besar, bukan compiler atau IDE.  Saya bisa memberikan Anda *kode* untuk aplikasi Flutter sederhana.  Anda kemudian perlu menyalin kode ini ke IDE Flutter (seperti VS Code atau Android Studio) dan menjalankannya.\n\nBerikut contoh kode Flutter untuk aplikasi sederhana yang menampilkan \"Hello World!\" dan sebuah tombol:\n\n```dart\nimport 'package:flutter/material.dart';\n\nvoid main() {\n  runApp(const MyApp());\n}\n\nclass MyApp extends StatelessWidget {\n  const MyApp({super.key});\n\n  @override\n  Widget build(BuildContext context) {\n    return MaterialApp(\n      title: 'Flutter Demo',\n      theme: ThemeData(\n        primarySwatch: Colors.blue,\n      ),\n      home: const MyHomePage(title: 'Hello World!'),\n    );\n  }\n}\n\nclass MyHomePage extends StatefulWidget {\n  const MyHomePage({super.key, required this.title});\n\n  final String title;\n\n  @override\n  State<MyHomePage> createState() => _MyHomePageState();\n}\n\nclass _MyHomePageState extends State<MyHomePage> {\n  int _counter = 0;\n\n  void _incrementCounter() {\n    setState(() {\n      _counter++;\n    });\n  }\n\n  @override\n  Widget build(BuildContext context) {\n    return Scaffold(\n      appBar: AppBar(\n        title: Text(widget.title),\n      ),\n      body: Center(\n        child: Column(\n          mainAxisAlignment: MainAxisAlignment.center,\n          children: <Widget>[\n            const Text(\n              'You have pushed the button this many times:',\n            ),\n            Text(\n              '$_counter',\n              style: Theme.of(context).textTheme.headlineMedium,\n            ),\n          ],\n        ),\n      ),\n      floatingActionButton: FloatingActionButton(\n        onPressed: _incrementCounter,\n        tooltip: 'Increment',\n        child: const Icon(Icons.add),\n      ),\n    );\n  }\n}\n```\n\nKode ini membuat aplikasi dengan:\n\n* **Judul:** \"Hello World!\" di AppBar.\n* **Teks:** Menampilkan berapa kali tombol ditekan.\n* **Tombol:**  Menambahkan 1 ke counter setiap kali ditekan.\n\n**Langkah-langkah untuk menjalankan kode ini:**\n\n1. **Pastikan Anda telah menginstal Flutter dan memiliki IDE yang sesuai (VS Code direkomendasikan).**\n2. **Buat project Flutter baru.**\n3. **Ganti isi file `main.dart` dengan kode di atas.**\n4. **Jalankan aplikasi di emulator atau perangkat Anda.**\n\nIni adalah aplikasi yang sangat dasar.  Untuk membuat aplikasi yang lebih kompleks, Anda perlu mempelajari lebih lanjut tentang Dart dan framework Flutter.  Ada banyak tutorial dan dokumentasi yang tersedia online.  Beri tahu saya jika Anda ingin contoh aplikasi yang lebih spesifik, misalnya dengan fitur tertentu.\n"
+    ]
+  }
+]

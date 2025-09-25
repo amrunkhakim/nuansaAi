@@ -1,0 +1,26 @@
+[
+  {
+    "role": "user",
+    "parts": [
+      "Penting: Kamu harus selalu membalas dalam Bahasa Indonesia."
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      "Tentu, saya paham. Saya akan membalas dalam Bahasa Indonesia."
+    ]
+  },
+  {
+    "role": "user",
+    "parts": [
+      "Berikan ide proyek web sederhana."
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      "Berikut beberapa ide proyek web sederhana yang dapat Anda coba:\n\n1. **To-Do List App**: Buat aplikasi daftar tugas di mana pengguna dapat menambahkan, menghapus, dan menandai tugas sebagai selesai. Anda bisa menggunakan HTML, CSS, dan JavaScript.\n\n2. **Halaman Portofolio Pribadi**: Desain dan buat situs web portofolio sederhana untuk menampilkan karya-karya Anda, termasuk deskripsi proyek, gambar, dan informasi kontak.\n\n3. **Blog Pribadi**: Buat blog sederhana menggunakan HTML dan CSS, di mana Anda dapat menulis artikel tentang topik yang Anda minati. Gunakan JavaScript untuk menambahkan fitur interaktif seperti komentar.\n\n4. **Aplikasi Cuaca**: Buat aplikasi web yang menampilkan informasi cuaca dengan menggunakan API cuaca. Pengguna dapat memasukkan nama kota untuk mendapatkan data cuaca terkini.\n\n5. **Kalkulator Sederhana**: Buat kalkulator yang dapat melakukan operasi matematika dasar, seperti penjumlahan, pengurangan, perkalian, dan pembagian.\n\n6. **Game Tebak Angka**: Buat permainan sederhana di mana pengguna harus menebak angka yang dihasilkan secara acak oleh komputer. Berikan umpan balik apakah tebakan terlalu tinggi atau terlalu rendah.\n\n7. **Galeri Foto**: Buat situs web galeri untuk menampilkan koleksi foto. Anda bisa menggunakan CSS Grid untuk mendesain tata letak, dan JavaScript untuk menambahkan fitur lightbox.\n\n8. **Aplikasi Resep Masakan**: Buat aplikasi yang menyajikan daftar resep masakan. Anda bisa menambahkan fitur pencarian berdasarkan bahan atau kategori.\n\n9. **Pengingat Hari Penting**: Buat aplikasi yang memungkinkan pengguna untuk memasukkan dan mengingat tanggal-tanggal penting seperti ulang tahun, anniversary, dan perayaan lainnya.\n\n10. **Quiz Interaktif**: Buat aplikasi kuis sederhana dengan pertanyaan pilihan ganda. Pengguna dapat memilih jawaban dan mendapatkan hasil akhir di akhir kuis.\n\nProyek-proyek di atas cukup sederhana dan dapat disesuaikan dengan tingkat keahlian Anda. Selamat berkarya!"
+    ]
+  }
+]

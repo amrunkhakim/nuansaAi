@@ -1,0 +1,26 @@
+[
+  {
+    "role": "user",
+    "parts": [
+      "Penting: Kamu harus selalu membalas setiap pertanyaan dalam Bahasa Indonesia, tanpa kecuali."
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      "Tentu, saya paham. Saya akan selalu membalas dalam Bahasa Indonesia."
+    ]
+  },
+  {
+    "role": "user",
+    "parts": [
+      "bUATKAN MENJADI KODE HTML"
+    ]
+  },
+  {
+    "role": "model",
+    "parts": [
+      "Berikut kode HTML untuk merepresentasikan halaman login yang ditampilkan pada gambar.  Perlu diingat bahwa ini hanya representasi visual dan tidak mencakup fungsionalitas login sebenarnya (seperti validasi dan koneksi ke database).  Anda perlu menambahkan JavaScript atau menghubungkannya dengan backend untuk fungsionalitas tersebut.\n\n```html\n<!DOCTYPE html>\n<html lang=\"id\">\n<head>\n    <meta charset=\"UTF-8\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n    <title>Bootstrap Brain - Login</title>\n    <style>\n        body {\n            background-color: #007bff; /* Biru */\n            font-family: sans-serif;\n            display: flex;\n            justify-content: center;\n            align-items: center;\n            min-height: 100vh;\n            margin: 0;\n        }\n\n        .container {\n            background-color: white;\n            padding: 30px;\n            border-radius: 8px;\n            box-shadow: 0 0 10px rgba(0,0,0,0.1);\n            text-align: center;\n        }\n\n        .logo {\n            display: flex;\n            justify-content: center;\n            align-items: center;\n            margin-bottom: 20px;\n        }\n\n        .logo img { /* Ganti dengan logo sebenarnya */\n            height: 50px;\n        }\n\n        .logo h1 {\n            margin-left: 10px;\n            font-size: 24px;\n            font-weight: bold;\n        }\n\n\n        .description {\n            margin-bottom: 30px;\n            color: #333;\n        }\n\n        .form-group {\n            margin-bottom: 15px;\n        }\n\n        .form-group label {\n            display: block;\n            margin-bottom: 5px;\n        }\n\n        .form-group input {\n            width: 100%;\n            padding: 10px;\n            border: 1px solid #ccc;\n            border-radius: 4px;\n            box-sizing: border-box;\n        }\n\n        .btn {\n            background-color: #007bff;\n            color: white;\n            padding: 10px 20px;\n            border: none;\n            border-radius: 4px;\n            cursor: pointer;\n        }\n\n        .social-buttons {\n            margin-top: 20px;\n        }\n\n        .social-buttons button {\n            background-color: white;\n            border: 1px solid #ccc;\n            border-radius: 4px;\n            padding: 10px 20px;\n            margin: 0 5px;\n            cursor: pointer;\n        }\n    </style>\n</head>\n<body>\n    <div class=\"container\">\n      <div class=\"logo\">\n        <h1>BOOTSTRAP BRAIN</h1> </div>\n        <div class=\"description\">\n            We make digital products that drive you to stand out.<br>\n            We write words, take photos, make videos, and interact with artificial intelligence.\n        </div>\n\n        <h2>Sign in</h2>\n        <p>Don't have an account? <a href=\"#\">Sign up</a></p>\n\n        <form>\n            <div class=\"form-group\">\n                <label for=\"email\">Email</label>\n                <input type=\"email\" id=\"email\" name=\"email\" required>\n            </div>\n            <div class=\"form-group\">\n                <label for=\"password\">Password</label>\n                <input type=\"password\" id=\"password\" name=\"password\" required>\n            </div>\n            <div class=\"form-group\">\n                <input type=\"checkbox\" id=\"rememberMe\" name=\"rememberMe\">\n                <label for=\"rememberMe\">Keep me logged in</label>\n            </div>\n            <button type=\"submit\" class=\"btn\">Log in now</button>\n            <a href=\"#\">Forgot password</a>\n        </form>\n\n        <div class=\"social-buttons\">\n            Or continue with\n            <button><i class=\"fab fa-google\"></i> Google</button>\n            <button><i class=\"fab fa-facebook\"></i> Facebook</button>\n            <button><i class=\"fab fa-apple\"></i> Apple</button>\n        </div>\n    </div>\n</body>\n</html>\n```\n\nIngat untuk mengganti placeholder `<i class=\"fab fa-google\"></i>`, dll.  dengan ikon yang sebenarnya jika Anda menggunakan font awesome atau library ikon lainnya.  Anda juga perlu menambahkan link yang berfungsi pada tag `<a>`  untuk sign up dan forgot password.\n"
+    ]
+  }
+]
