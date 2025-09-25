@@ -26,7 +26,7 @@ app = Flask(__name__)
 
 app.config.update(
     SESSION_COOKIE_NAME='google-login-session',
-    SESSION_COOKIE_SECURE=True, # Ubah ke True untuk produksi
+    SESSION_COOKIE_SECURE=True, # Direkomendasikan True untuk produksi
     SECRET_KEY=os.getenv("SECRET_KEY", os.urandom(24)),
     SQLALCHEMY_DATABASE_URI=os.getenv("DATABASE_URL", "sqlite:///app.db"),
     SQLALCHEMY_TRACK_MODIFICATIONS=False
@@ -52,24 +52,24 @@ class Conversation(db.Model):
     id = db.Column(db.String(100), primary_key=True)
     user_id = db.Column(db.String(100), db.ForeignKey('user.id'), nullable=False)
     title = db.Column(db.String(100), nullable=False, default="Percakapan Baru")
+    # History akan disimpan sebagai JSON string dalam kolom Text
     history = db.Column(db.Text, nullable=False)
-    created_at = db.Column(db.DateTime, default=db.func.now())
+    created_at = db.Column(db.DateTime, default=db.func.now(), index=True)
 
 class Feedback(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.String(100), db.ForeignKey('user.id'), nullable=False)
-    conversation_id = db.Column(db.String(255), nullable=False)
+    conversation_id = db.Column(db.String(100), nullable=False)
     is_positive = db.Column(db.Boolean, nullable=False)
     created_at = db.Column(db.DateTime, default=db.func.now())
 
-# Konfigurasi Google OAuth dipindahkan ke sini untuk memastikan semua variabel sudah ada
+
 google = oauth.register(
     name='google',
     client_id=os.getenv("GOOGLE_CLIENT_ID"),
     client_secret=os.getenv("GOOGLE_CLIENT_SECRET"),
     server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
     client_kwargs={'scope': 'openid email profile'}
-    # `redirect_uri` akan dipanggil secara dinamis di dalam rute
 )
 
 snap = midtransclient.Snap(
@@ -107,9 +107,7 @@ def api_key_required(f):
         return f(user, *args, **kwargs)
     return decorated_function
 
-# =====================================================================
 # --- FITUR: SELF-DIAGNOSIS ERROR DENGAN AI ---
-# =====================================================================
 def send_developer_alert(traceback_str, ai_analysis):
     webhook_url = os.getenv("DISCORD_WEBHOOK_URL")
     if not webhook_url:
@@ -129,7 +127,18 @@ def send_developer_alert(traceback_str, ai_analysis):
 
 def analyze_error_with_ai(e):
     error_traceback = traceback.format_exc()
-    prompt = f"..." # Prompt tidak diubah
+    prompt = f"""
+    You are an expert Python Flask developer acting as a Site Reliability Engineer.
+    An unhandled exception occurred in my web application. Please analyze the following traceback, 
+    explain the root cause in simple Indonesian, and suggest a specific code fix.
+
+    Traceback:
+    ---
+    {error_traceback}
+    ---
+    
+    Analysis and Solution:
+    """
     try:
         if model:
             analysis = model.generate_content(prompt).text
@@ -146,30 +155,20 @@ def analyze_error_with_ai(e):
 def index():
     if 'user_id' in session:
         user = User.query.get(session['user_id'])
-        if not user:
+        if not user: # Jika user di session tidak ada di DB, hapus session
             session.pop('user_id', None)
             return redirect(url_for('show_login_page'))
-        return render_template('index.html', user=user, tokens_remaining=50 - user.tokens_used_today)
+        return render_template('index.html', user=user, tokens_remaining=max(0, 50 - user.tokens_used_today))
     return redirect(url_for('show_login_page'))
 
 @app.route('/login')
 def show_login_page():
     return render_template('login.html')
 
-# =====================================================================
-# --- PERBAIKAN UTAMA: MEMPERBAIKI REDIRECT_URI_MISMATCH ---
-# =====================================================================
 @app.route('/signin-google')
 def signin_google():
-    """
-    Rute ini secara eksplisit mengambil redirect URI dari environment variable
-    dan meneruskannya ke fungsi authorize_redirect. Ini memastikan URL yang
-    dikirim ke Google selalu konsisten dengan yang ada di Vercel dan Google Cloud Console.
-    """
-    redirect_uri = os.getenv('GOOGLE_REDIRECT_URI')
-    if not redirect_uri:
-        # Fallback atau error jika environment variable tidak diset
-        return "Error: GOOGLE_REDIRECT_URI tidak dikonfigurasi di server.", 500
+    # Gunakan url_for untuk redirect_uri agar lebih fleksibel
+    redirect_uri = url_for('auth', _external=True)
     return google.authorize_redirect(redirect_uri)
 
 @app.route('/auth')
@@ -199,10 +198,12 @@ def logout():
     session.pop('user_id', None)
     return redirect(url_for('show_login_page'))
 
-# --- Rute Chat (Menggunakan Database, tidak ada perubahan) ---
+# --- RUTE CHAT (MENGGUNAKAN DATABASE) ---
+
 @app.route('/get_conversations')
 def get_conversations():
     if 'user_id' not in session: return jsonify({"error": "Unauthorized"}), 401
+    
     conversations = Conversation.query.filter_by(user_id=session['user_id']).order_by(Conversation.created_at.desc()).all()
     conv_list = [{'id': c.id, 'title': c.title} for c in conversations]
     return jsonify(conv_list)
@@ -215,15 +216,17 @@ def get_history(conversation_id):
     if conv and conv.history:
         try:
             history = json.loads(conv.history)
+            # Hanya kirim pesan setelah prompt awal
             return jsonify(history[2:] if len(history) > 2 else [])
         except json.JSONDecodeError:
-            return jsonify([])
+            return jsonify([]) # Data histori korup
     return jsonify([])
 
 @app.route('/new_chat', methods=['POST'])
 def new_chat():
     if 'user_id' not in session: return jsonify({"error": "Unauthorized"}), 401
-    conversation_id = str(int(time.time()))
+    # Buat ID unik berbasis waktu dan entropy
+    conversation_id = f"{int(time.time())}-{secrets.token_hex(4)}"
     return jsonify({'conversation_id': conversation_id})
 
 @app.route('/chat', methods=['POST'])
@@ -247,6 +250,7 @@ def chat():
         conversation = Conversation.query.filter_by(id=conversation_id, user_id=user.id).first()
         history = []
         is_new_conversation = not conversation
+
         if is_new_conversation:
             history = [
                 {'role': 'user', 'parts': ['Penting: Kamu harus selalu membalas dalam Bahasa Indonesia.']},
@@ -261,7 +265,7 @@ def chat():
         prompt_for_history = user_message or "Jelaskan gambar ini secara detail."
         if image_file: contents.append(Image.open(image_file.stream))
         if user_message: contents.append(user_message)
-        elif image_file: contents.append(prompt_for_history)
+        elif image_file and not user_message: contents.append(prompt_for_history)
 
         tokens_in = genai.GenerativeModel('gemini-1.5-flash-latest').count_tokens(contents).total_tokens
         if user.tokens_used_today + tokens_in >= MAX_DAILY_TOKENS:
@@ -302,9 +306,7 @@ def chat():
         analyze_error_with_ai(e)
         return Response("Terjadi kesalahan server internal. Tim kami telah diberitahu.", status=500)
 
-# --- Rute Lainnya (Pembayaran, Feedback, API) ---
-# (Kode untuk rute-rute ini tetap sama seperti yang Anda berikan sebelumnya)
-
+# --- RUTE LAINNYA ---
 @app.route('/pricing')
 def pricing():
     if 'user_id' not in session: return redirect(url_for('show_login_page'))
@@ -349,7 +351,6 @@ def payment_notification():
     notification_data = request.json
     order_id = notification_data.get('order_id')
     if not order_id: return "Notifikasi tidak valid", 400
-
     try:
         status_response = snap.transactions.status(order_id)
         if status_response.get('transaction_status') == 'settlement' and status_response.get('fraud_status') == 'accept':
@@ -403,7 +404,6 @@ def get_tokens_remaining():
     user = User.query.get(session['user_id'])
     MAX_DAILY_TOKENS = 50
     return jsonify({'tokens_remaining': max(0, MAX_DAILY_TOKENS - user.tokens_used_today)})
-
 
 # --- 4. MENJALANKAN APLIKASI ---
 if __name__ == '__main__':

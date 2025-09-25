@@ -52,6 +52,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const hasImage = imageInput.files.length > 0;
         submitBtn.disabled = isGenerating || (!hasText && !hasImage);
     }
+
+    function escapeHTML(str) {
+        const p = document.createElement("p");
+        p.textContent = str;
+        return p.innerHTML;
+    }
     
     function addUserMessageWithImage(message, imageFile) {
         welcomeMessage.classList.add('hidden');
@@ -109,17 +115,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function addCopyButton(preElement) {
-        if (preElement.querySelector('.copy-code-btn')) return; // Hindari duplikat tombol
+        if (preElement.querySelector('.copy-code-btn')) return;
         const copyButton = document.createElement('button');
         copyButton.className = 'copy-code-btn';
         copyButton.innerText = 'Salin';
         preElement.appendChild(copyButton);
-    }
-
-    function escapeHTML(str) {
-        const p = document.createElement("p");
-        p.textContent = str;
-        return p.innerHTML;
     }
 
     // --- Logika Utama Aplikasi ---
@@ -303,23 +303,18 @@ document.addEventListener('DOMContentLoaded', () => {
             
             hideThinkingIndicator();
 
-            // =====================================================================
-            // --- PERBAIKAN: PENANGANAN ERROR YANG LEBIH BAIK ---
-            // =====================================================================
             if (!response.ok) {
                 const errorText = await response.text();
                 let displayMessage = `Terjadi kesalahan (Kode: ${response.status}). Coba lagi nanti.`;
 
                 if (response.status === 500) {
-                    displayMessage = "🛠️ Maaf, terjadi masalah di server kami. Tim teknis sudah diberitahu dan sedang menanganinya .Atau coba Silahkan Gunakan Model Ai Yang lain";
+                    displayMessage = "🛠️ Maaf, terjadi masalah di server kami. Tim teknis sudah diberitahu. Silakan coba lagi atau gunakan model AI yang lain.";
                 } else if (response.status === 429) {
-                    displayMessage = "⌛ Batas penggunaan harian Anda telah tercapai. Silakan coba lagi besok atau tingkatkan paket Anda.";
+                    displayMessage = `⌛ Batas penggunaan harian Anda telah tercapai. (${errorText})`;
                 } else if (errorText) {
-                    // Jika ada pesan error dari server, gunakan itu
                     displayMessage = errorText;
                 }
                 
-                // Melempar error agar ditangkap oleh blok catch di bawah
                 throw new Error(displayMessage);
             }
 
@@ -359,7 +354,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const isFirstUserMessage = chatBox.querySelectorAll('.justify-end').length === 1;
             if (isFirstUserMessage) {
                 await loadConversations();
-                 document.querySelector(`#conversation-list button[data-id="${currentConversationId}"]`)?.classList.add('bg-slate-700');
+                const currentConvButton = document.querySelector(`#conversation-list button[data-id="${currentConversationId}"]`);
+                if (currentConvButton) {
+                    currentConvButton.classList.add('bg-slate-700');
+                }
             }
 
         } catch (error) {
