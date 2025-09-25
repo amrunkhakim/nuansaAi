@@ -311,7 +311,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 let displayMessage = `Terjadi kesalahan (Kode: ${response.status}). Coba lagi nanti.`;
 
                 if (response.status === 500) {
-                    displayMessage = "🛠️ Maaf, terjadi masalah di server kami. Tim teknis sudah diberitahu dan sedang menanganinya.";
+                    displayMessage = "🛠️ Maaf, terjadi masalah di server kami. Tim teknis sudah diberitahu dan sedang menanganinya .Atau coba Silahkan Gunakan Model Ai Yang lain";
                 } else if (response.status === 429) {
                     displayMessage = "⌛ Batas penggunaan harian Anda telah tercapai. Silakan coba lagi besok atau tingkatkan paket Anda.";
                 } else if (errorText) {
