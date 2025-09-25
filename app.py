@@ -413,22 +413,29 @@ def get_tokens_remaining():
     user = User.query.get(session['user_id'])
     MAX_DAILY_TOKENS = 50
     return jsonify({'tokens_remaining': max(0, MAX_DAILY_TOKENS - user.tokens_used_today)})
-# Tambahkan ini di dekat rute lain
+
+# =====================================================================
+# --- PERBAIKAN: RUTE SEMENTARA UNTUK MEMBUAT TABEL DATABASE ---
+# =====================================================================
 # RUTE INI HANYA UNTUK INISIALISASI DATABASE SATU KALI, LALU HAPUS
 @app.route('/init-db/<secret_key>')
 def init_db(secret_key):
-    # Ganti dengan secret key yang kuat di environment variable Anda
-    ADMIN_SECRET_KEY = os.getenv("ADMIN_SECRET_KEY", "default-secret") 
+    # Ambil secret key dari environment variable untuk keamanan
+    ADMIN_SECRET_KEY = os.getenv("ADMIN_SECRET_KEY")
     
+    if not ADMIN_SECRET_KEY:
+        return "Admin secret key is not configured on the server.", 500
+
     if secret_key == ADMIN_SECRET_KEY:
         try:
             with app.app_context():
                 db.create_all()
             return "Database tables created successfully."
         except Exception as e:
-            return f"An error occurred: {e}"
+            return f"An error occurred while creating tables: {e}"
     else:
         return "Unauthorized", 403
+
 # --- 4. MENJALANKAN APLIKASI ---
 if __name__ == '__main__':
     with app.app_context():
