@@ -4,8 +4,7 @@ import time
 import secrets
 from functools import wraps
 import shutil
-from moviepy import ImageSequenceClip
-from flask import send_file 
+from flask import send_file
 from werkzeug.utils import secure_filename
 import datetime
 import requests # Import the requests library
@@ -46,7 +45,7 @@ google = oauth.register(
     api_base_url='https://www.googleapis.com/oauth2/v1/',
     userinfo_endpoint='https://openidconnect.googleapis.com/v1/userinfo',
     client_kwargs={'scope': 'openid email profile'},
-    server_metadata_url=None, 
+    server_metadata_url=None,
     jwks_uri="https://www.googleapis.com/oauth2/v3/certs"
 )
 
@@ -167,70 +166,6 @@ def show_login_page():
 def signin_google():
     redirect_uri = url_for('auth', _external=True)
     return google.authorize_redirect(redirect_uri)
-
-
-@app.route('/create_video', methods=['GET', 'POST'])
-def create_video():
-    if 'user_id' not in session:
-        return jsonify({"error": "Unauthorized"}), 401
-    
-    # Rute GET: Tampilkan halaman upload
-    if request.method == 'GET':
-        return render_template('create_video.html')
-
-    # Rute POST: Proses gambar dan buat video
-    if request.method == 'POST':
-        # Periksa apakah ada file yang diunggah
-        if 'images[]' not in request.files:
-            return jsonify({"error": "Tidak ada file gambar yang diunggah"}), 400
-        
-        files = request.files.getlist('images[]')
-        
-        # Buat direktori sementara untuk menyimpan gambar yang diunggah
-        temp_dir = os.path.join(app.root_path, 'temp_uploads', session['user_id'])
-        if not os.path.exists(temp_dir):
-            os.makedirs(temp_dir)
-            
-        saved_image_paths = []
-        try:
-            for file in files:
-                if file.filename == '':
-                    continue
-                if file and allowed_file(file.filename): # Anda bisa membuat fungsi allowed_file() untuk validasi
-                    filename = secure_filename(file.filename)
-                    filepath = os.path.join(temp_dir, filename)
-                    file.save(filepath)
-                    saved_image_paths.append(filepath)
-            
-            if not saved_image_paths:
-                return jsonify({"error": "Tidak ada file gambar yang valid"}), 400
-                
-            # Urutkan gambar berdasarkan nama file agar urutan video benar
-            saved_image_paths.sort()
-            
-            # Buat video menggunakan MoviePy
-            clip = ImageSequenceClip(saved_image_paths, fps=1) # Sesuaikan FPS sesuai keinginan Anda
-            
-            # Simpan video ke file sementara
-            video_output_path = os.path.join(temp_dir, f"video_{int(time.time())}.mp4")
-            clip.write_videofile(video_output_path, codec="libx264")
-            
-            # Mengirimkan video yang telah dibuat sebagai respons
-            return send_file(video_output_path, as_attachment=True, download_name="video_baru.mp4")
-
-        except Exception as e:
-            app.logger.error(f"Error saat membuat video: {e}")
-            return jsonify({"error": f"Terjadi kesalahan internal: {e}"}), 500
-        finally:
-            # Hapus file dan folder sementara setelah selesai
-            if os.path.exists(temp_dir):
-                shutil.rmtree(temp_dir)
-
-
-# Fungsi helper untuk validasi jenis file
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif'}
 
 
 @app.route('/auth')
@@ -473,6 +408,12 @@ def chat():
         generation_config = genai.types.GenerationConfig(temperature=temperature)
         
         def stream_response_generator():
+            # ================== PERBAIKAN DI SINI ==================
+            # "Tempelkan" kembali objek user ke sesi saat ini agar
+            # perubahannya bisa dilacak dan disimpan ke database.
+            db.session.add(user)
+            # =======================================================
+            
             full_response_text = ""
 
             # Logika untuk memilih API yang akan digunakan
