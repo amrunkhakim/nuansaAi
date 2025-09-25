@@ -20,8 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const thinkingIndicator = document.getElementById('thinking-indicator');
 
     const menuToggle = document.getElementById('menu-toggle');
-    const sidebar = document.getElementById('sidebar');
-    const sidebarOverlay = document.getElementById('sidebar-overlay');
+    const sidebar = document.querySelector('aside');
     
     const tokensRemainingEl = document.getElementById('tokens-remaining');
     const suggestionButtons = document.querySelectorAll('.suggestion-btn');
@@ -55,7 +54,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function escapeHTML(str) {
-        if (!str) return "";
         const p = document.createElement("p");
         p.textContent = str;
         return p.innerHTML;
@@ -148,11 +146,6 @@ document.addEventListener('DOMContentLoaded', () => {
         clearChatBox();
         currentConversationId = id;
 
-        // Tutup sidebar di mode mobile setelah memilih percakapan
-        if (window.innerWidth < 768) {
-            closeSidebar();
-        }
-
         try {
             const response = await fetch(`/get_history/${id}`);
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -168,7 +161,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         } catch (error) {
             console.error("Gagal memuat riwayat:", error);
-            addHistoryMessage('AI', 'Gagal memuat riwayat percakapan.', currentConversationId);
         }
     }
 
@@ -185,10 +177,6 @@ document.addEventListener('DOMContentLoaded', () => {
         document.querySelectorAll('#conversation-list button.bg-slate-700').forEach(btn => {
             btn.classList.remove('bg-slate-700');
         });
-
-        if (window.innerWidth < 768) {
-            closeSidebar();
-        }
     }
 
     async function sendFeedback(conversationId, isPositive) {
@@ -267,6 +255,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // =====================================================================
+    // --- [LOGIKA UTAMA] PENANGANAN SUBMIT FORM DENGAN STREAMING ---
+    // =====================================================================
     chatForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const message = userInput.value.trim();
@@ -314,14 +305,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!response.ok) {
                 const errorText = await response.text();
-                let displayMessage;
+                let displayMessage = `Terjadi kesalahan (Kode: ${response.status}). Coba lagi nanti.`;
 
                 if (response.status === 500) {
                     displayMessage = "🛠️ Maaf, terjadi masalah di server kami. Tim teknis sudah diberitahu. Silakan coba lagi atau gunakan model AI yang lain.";
                 } else if (response.status === 429) {
                     displayMessage = `⌛ Batas penggunaan harian Anda telah tercapai. (${errorText})`;
-                } else {
-                    displayMessage = errorText || `Terjadi kesalahan (Kode: ${response.status}). Coba lagi nanti.`;
+                } else if (errorText) {
+                    displayMessage = errorText;
                 }
                 
                 throw new Error(displayMessage);
@@ -406,32 +397,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // --- Logika untuk Sidebar Mobile ---
-    function openSidebar() {
-        if (!sidebar) return;
-        sidebar.classList.remove('sidebar-mobile-closed');
-        sidebar.classList.add('sidebar-mobile-open');
-        sidebarOverlay.classList.remove('hidden');
-    }
-    
-    function closeSidebar() {
-        if (!sidebar) return;
-        sidebar.classList.remove('sidebar-mobile-open');
-        sidebar.classList.add('sidebar-mobile-closed');
-        sidebarOverlay.classList.add('hidden');
-    }
-
-    if (menuToggle && sidebar && sidebarOverlay) {
-        menuToggle.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (sidebar.classList.contains('sidebar-mobile-closed')) {
-                openSidebar();
-            } else {
-                closeSidebar();
-            }
+    if (menuToggle && sidebar) {
+        menuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('hidden');
+            sidebar.classList.toggle('md:flex');
         });
-
-        sidebarOverlay.addEventListener('click', closeSidebar);
     }
 
     // --- Inisialisasi ---

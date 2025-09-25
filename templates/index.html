@@ -90,24 +90,12 @@
             filter: grayscale(80%);
             opacity: 0.6;
         }
-        /* PERBAIKAN MOBILE: Kelas untuk transisi sidebar */
-        .sidebar-mobile-closed {
-            transform: translateX(-100%);
-        }
-        .sidebar-mobile-open {
-            transform: translateX(0);
-        }
     </style>
 </head>
 
 <body class="bg-slate-900 text-white font-sans flex h-screen overflow-hidden">
 
-    <div id="sidebar-overlay" class="fixed inset-0 bg-black/60 z-30 hidden md:hidden"></div>
-
-    <aside id="sidebar" class="w-80 bg-slate-800 border-r border-slate-700 flex flex-col h-full 
-                            fixed md:static inset-y-0 left-0 z-40 
-                            transition-transform duration-300 ease-in-out 
-                            sidebar-mobile-closed md:sidebar-mobile-open">
+    <aside class="w-80 bg-slate-800 border-r border-slate-700 flex-col h-screen hidden md:flex">
         <div class="p-4 border-b border-slate-700">
             <button id="new-chat-button" class="w-full bg-indigo-600 text-white font-semibold py-2 px-4 rounded-lg hover:bg-indigo-700 transition-colors text-sm flex items-center justify-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" /></svg>
@@ -136,6 +124,8 @@
                 <option value="gemini">Gemini</option>
                 <option value="gptgod_gpt-3.5-turbo">GPTGod - gpt-3.5-turbo</option>
                 <option value="gptgod_gpt-4-all">GPTGod - gpt-4-all</option>
+              
+
             </select>
         </div>
         <div class="p-4 space-y-2 border-t border-slate-700">
@@ -244,39 +234,6 @@
             </div>
         </footer>
     </div>
-    
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const menuToggle = document.getElementById('menu-toggle');
-            const sidebar = document.getElementById('sidebar');
-            const sidebarOverlay = document.getElementById('sidebar-overlay');
-            
-            function openSidebar() {
-                sidebar.classList.remove('sidebar-mobile-closed');
-                sidebar.classList.add('sidebar-mobile-open');
-                sidebarOverlay.classList.remove('hidden');
-            }
-            
-            function closeSidebar() {
-                sidebar.classList.remove('sidebar-mobile-open');
-                sidebar.classList.add('sidebar-mobile-closed');
-                sidebarOverlay.classList.add('hidden');
-            }
-
-            if (menuToggle && sidebar && sidebarOverlay) {
-                menuToggle.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    if (sidebar.classList.contains('sidebar-mobile-closed')) {
-                        openSidebar();
-                    } else {
-                        closeSidebar();
-                    }
-                });
-
-                sidebarOverlay.addEventListener('click', closeSidebar);
-            }
-        });
-    </script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
