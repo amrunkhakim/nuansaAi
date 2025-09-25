@@ -154,7 +154,7 @@ def analyze_error_with_ai(e):
 def index():
     if 'user_id' in session:
         user = User.query.get(session['user_id'])
-        if not user: # Jika user di session tidak ada di DB, hapus session
+        if not user:
             session.pop('user_id', None)
             return redirect(url_for('show_login_page'))
         return render_template('index.html', user=user, tokens_remaining=max(0, 50 - user.tokens_used_today))
@@ -170,7 +170,7 @@ def signin_google():
     return google.authorize_redirect(redirect_uri)
 
 # =====================================================================
-# --- PERBAIKAN UTAMA BERDASARKAN ERROR LOG TERAKHIR ---
+# --- PERBAIKAN UTAMA BERDASARKAN ERROR LOG ---
 # =====================================================================
 @app.route('/auth')
 def auth():
