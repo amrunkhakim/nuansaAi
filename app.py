@@ -27,10 +27,15 @@ app = Flask(__name__)
 app.config.update(
     SESSION_COOKIE_NAME='google-login-session',
     SESSION_COOKIE_SECURE=True, # Direkomendasikan True untuk produksi
-    SECRET_KEY=os.getenv("SECRET_KEY", os.urandom(24)),
+    SECRET_KEY=os.getenv("SECRET_KEY", "a_default_secret_key_for_development_only"), # Fallback untuk development
     SQLALCHEMY_DATABASE_URI=os.getenv("DATABASE_URL", "sqlite:///app.db"),
     SQLALCHEMY_TRACK_MODIFICATIONS=False
 )
+
+# Pastikan SECRET_KEY tidak menggunakan os.urandom di produksi
+if app.config["SECRET_KEY"] == "a_default_secret_key_for_development_only" and not app.debug:
+    raise ValueError("SECRET_KEY tidak boleh kosong di lingkungan produksi!")
+
 
 db = SQLAlchemy(app)
 oauth = OAuth(app)
@@ -154,7 +159,7 @@ def analyze_error_with_ai(e):
 def index():
     if 'user_id' in session:
         user = User.query.get(session['user_id'])
-        if not user: # Jika user di session tidak ada di DB, hapus session
+        if not user:
             session.pop('user_id', None)
             return redirect(url_for('show_login_page'))
         return render_template('index.html', user=user, tokens_remaining=max(0, 50 - user.tokens_used_today))
@@ -169,17 +174,12 @@ def signin_google():
     redirect_uri = url_for('auth', _external=True)
     return google.authorize_redirect(redirect_uri)
 
-# =====================================================================
-# --- PERBAIKAN UTAMA BERDASARKAN ERROR LOG ---
-# =====================================================================
 @app.route('/auth')
 def auth():
     try:
         token = google.authorize_access_token()
-        # PERBAIKAN: Gunakan metode .userinfo() yang benar
         user_info = google.userinfo()
         
-        # PERBAIKAN: Gunakan 'sub' sebagai ID unik sesuai standar OpenID
         user_id = user_info['sub']
         user = User.query.get(user_id)
         
