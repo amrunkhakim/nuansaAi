@@ -15,4 +15,3 @@ Authlib
 # Utilities
 python-dotenv
 Pillow
-moviepy
