@@ -4,6 +4,7 @@ import time
 import secrets
 from functools import wraps
 import shutil
+import traceback # <-- IMPORT BARU
 from flask import send_file
 from werkzeug.utils import secure_filename
 import datetime
@@ -77,7 +78,6 @@ class User(db.Model):
     picture = db.Column(db.String(255))
     subscription_plan = db.Column(db.String(50), default='Gratis', nullable=False)
     api_key = db.Column(db.String(255), unique=True, nullable=True)
-    # Kolom baru untuk melacak penggunaan token
     tokens_used_today = db.Column(db.Integer, default=0)
     last_request_date = db.Column(db.Date, default=datetime.date.today)
 
@@ -129,7 +129,7 @@ def api_key_required(f):
         return f(user, *args, **kwargs)
     return decorated_function
 
-# Fungsi helper untuk memanggil GPTGod API
+
 def call_gptgod_api(prompt, model_name="gpt-3.5-turbo"):
     headers = {
         "Authorization": f"Bearer {GPTGOD_API_KEY}",
@@ -145,6 +145,69 @@ def call_gptgod_api(prompt, model_name="gpt-3.5-turbo"):
     return response.json()["choices"][0]["message"]["content"]
 
 
+# =====================================================================
+# --- FITUR BARU: SELF-DIAGNOSIS ERROR DENGAN AI ---
+# =====================================================================
+def send_developer_alert(traceback_str, ai_analysis):
+    """Mengirim notifikasi ke webhook (misal: Discord, Slack)."""
+    webhook_url = os.getenv("DISCORD_WEBHOOK_URL") # Simpan URL webhook di .env
+    if not webhook_url:
+        print("PERINGATAN: DISCORD_WEBHOOK_URL tidak diatur. Melewatkan notifikasi error.")
+        return
+
+    message = {
+        "content": "🚨 **Internal Server Error Detected!** 🚨",
+        "embeds": [
+            {
+                "title": "AI-Powered Analysis",
+                "description": ai_analysis,
+                "color": 15158332 # Merah
+            },
+            {
+                "title": "Full Traceback",
+                "description": f"```python\n{traceback_str[:1900]}\n```", # Batasi panjang traceback
+                "color": 5814783 # Abu-abu
+            }
+        ]
+    }
+    try:
+        requests.post(webhook_url, json=message, timeout=10)
+    except Exception as e:
+        print(f"KRITIS: Gagal mengirim notifikasi developer: {e}")
+
+def analyze_error_with_ai(e):
+    """
+    Menganalisis exception menggunakan AI dan mengirim notifikasi.
+    """
+    error_traceback = traceback.format_exc()
+    
+    prompt = f"""
+    You are an expert Python Flask developer acting as a Site Reliability Engineer.
+    An unhandled exception occurred in my web application. Please analyze the following traceback, 
+    explain the root cause in simple Indonesian, and suggest a specific code fix.
+
+    Traceback:
+    ---
+    {error_traceback}
+    ---
+    
+    Analysis and Solution:
+    """
+    
+    try:
+        if model:
+            response = model.generate_content(prompt)
+            analysis = response.text
+        else:
+            analysis = "AI model is not available for analysis."
+
+        send_developer_alert(error_traceback, analysis)
+
+    except Exception as analysis_error:
+        print(f"KRITIS: Gagal menganalisis error dengan AI. Alasan: {analysis_error}")
+        # Kirim notifikasi darurat jika analisis AI gagal
+        send_developer_alert(error_traceback, "Analisis AI gagal. Periksa log server segera.")
+
 # --- 3. RUTE APLIKASI ---
 
 # Bagian: Otentikasi & Halaman Utama
@@ -152,7 +215,6 @@ def call_gptgod_api(prompt, model_name="gpt-3.5-turbo"):
 def index():
     if 'user_id' in session:
         user = User.query.get(session['user_id'])
-        # Mengirimkan sisa token ke template
         return render_template('index.html', user=user, tokens_remaining=50-user.tokens_used_today)
     return redirect(url_for('show_login_page'))
 
@@ -190,6 +252,7 @@ def auth():
         return redirect('/')
     except Exception as e:
         app.logger.error(f"Error during Google Auth: {e}")
+        analyze_error_with_ai(e) # Tambahkan analisis AI di sini juga
         return redirect(url_for('show_login_page'))
 
 
@@ -200,12 +263,12 @@ def logout():
 
 
 # Bagian: Langganan, Pembayaran & Dasbor
+# ... (Rute lain tetap sama, tidak perlu diubah) ...
 @app.route('/pricing')
 def pricing():
     if 'user_id' not in session: return redirect(url_for('show_login_page'))
     user = User.query.get(session['user_id'])
     return render_template('pricing.html', user=user, client_key=os.getenv("MIDTRANS_CLIENT_KEY"))
-
 
 @app.route('/dashboard')
 def dashboard():
@@ -213,7 +276,6 @@ def dashboard():
     user = User.query.get(session['user_id'])
     if user.subscription_plan != 'Pro': return redirect(url_for('pricing'))
     return render_template('dashboard.html', user=user)
-
 
 @app.route('/regenerate_api_key', methods=['POST'])
 def regenerate_api_key():
@@ -223,7 +285,6 @@ def regenerate_api_key():
         user.api_key = generate_api_key()
         db.session.commit()
     return redirect(url_for('dashboard'))
-
 
 @app.route('/create_transaction', methods=['POST'])
 def create_transaction():
@@ -240,8 +301,8 @@ def create_transaction():
         return jsonify({'token': transaction['token']})
     except Exception as e:
         app.logger.error(f"Gagal membuat transaksi Midtrans: {e}")
+        analyze_error_with_ai(e)
         return jsonify({"error": "Gagal membuat transaksi dengan Midtrans."}), 500
-
 
 @app.route('/payment_notification', methods=['POST'])
 def payment_notification():
@@ -264,8 +325,8 @@ def payment_notification():
                 db.session.commit()
         return "Notifikasi diproses.", 200
     except Exception as e:
+        analyze_error_with_ai(e)
         return "Error", 500
-
 
 @app.route('/feedback', methods=['POST'])
 def save_feedback():
@@ -286,6 +347,7 @@ def save_feedback():
         return jsonify({"error": "Payload tidak lengkap"}), 400
     except Exception as e:
         app.logger.error(f"Error saat menyimpan umpan balik: {e}")
+        analyze_error_with_ai(e)
         return jsonify({"error": "Terjadi kesalahan server"}), 500
 
 
@@ -300,6 +362,7 @@ def api_chat(current_user):
         response = model.generate_content(data['prompt'])
         return jsonify({"response": response.text})
     except Exception as e:
+        analyze_error_with_ai(e)
         return jsonify({"error": "Terjadi kesalahan internal saat memproses permintaan."}), 500
 
 
@@ -342,44 +405,46 @@ def new_chat():
 
 @app.route('/chat', methods=['POST'])
 def chat():
-    if 'user_id' not in session: return Response("Unauthorized", status=401)
-    if not model: return Response("Model AI tidak terinisialisasi.", status=500)
-    
-    user = User.query.get(session['user_id'])
-    MAX_DAILY_TOKENS = 50 # Batasan harian untuk token
-    
-    # Reset token jika hari sudah berganti
-    if user.last_request_date != datetime.date.today():
-        user.tokens_used_today = 0
-        user.last_request_date = datetime.date.today()
-        db.session.commit()
-
-    user_message = request.form.get('message')
-    conversation_id = request.form.get('conversation_id')
-    image_file = request.files.get('image')
-    temperature_str = request.form.get('temperature', '0.7')
-    model_choice = request.form.get('model_choice', 'gemini')
-    
+    # =====================================================================
+    # --- PERUBAHAN UTAMA: MENANGKAP SEMUA ERROR DI RUTE INI ---
+    # =====================================================================
     try:
-        temperature = max(0.0, min(1.0, float(temperature_str)))
-    except (ValueError, TypeError):
-        temperature = 0.7
-    
-    user_dir = get_user_conversations_dir()
-    filepath = os.path.join(user_dir, f"{conversation_id}.json")
-    history = []
-    if os.path.exists(filepath):
+        if 'user_id' not in session: return Response("Unauthorized", status=401)
+        if not model: return Response("Model AI tidak terinisialisasi.", status=500)
+        
+        user = User.query.get(session['user_id'])
+        MAX_DAILY_TOKENS = 50 
+        
+        if user.last_request_date != datetime.date.today():
+            user.tokens_used_today = 0
+            user.last_request_date = datetime.date.today()
+            db.session.commit()
+
+        user_message = request.form.get('message')
+        conversation_id = request.form.get('conversation_id')
+        image_file = request.files.get('image')
+        temperature_str = request.form.get('temperature', '0.7')
+        model_choice = request.form.get('model_choice', 'gemini')
+        
         try:
-            with open(filepath, 'r', encoding='utf-8') as f: history = json.load(f)
-        except json.JSONDecodeError: history = []
-    
-    if not history:
-        history.extend([
-            {'role': 'user', 'parts': ['Penting: Kamu harus selalu membalas dalam Bahasa Indonesia.']},
-            {'role': 'model', 'parts': ['Tentu, saya paham. Saya akan membalas dalam Bahasa Indonesia.']}
-        ])
+            temperature = max(0.0, min(1.0, float(temperature_str)))
+        except (ValueError, TypeError):
+            temperature = 0.7
+        
+        user_dir = get_user_conversations_dir()
+        filepath = os.path.join(user_dir, f"{conversation_id}.json")
+        history = []
+        if os.path.exists(filepath):
+            try:
+                with open(filepath, 'r', encoding='utf-8') as f: history = json.load(f)
+            except json.JSONDecodeError: history = []
+        
+        if not history:
+            history.extend([
+                {'role': 'user', 'parts': ['Penting: Kamu harus selalu membalas dalam Bahasa Indonesia.']},
+                {'role': 'model', 'parts': ['Tentu, saya paham. Saya akan membalas dalam Bahasa Indonesia.']}
+            ])
 
-    try:
         contents, prompt_for_history = [], user_message
         if image_file: contents.append(Image.open(image_file.stream))
         if user_message: contents.append(user_message)
@@ -388,83 +453,63 @@ def chat():
             contents.append(default_prompt)
             prompt_for_history = default_prompt
         
-        # Hitung token sebelum memanggil API (hanya untuk Gemini)
         if model_choice == 'gemini':
-            try:
-                count_response = genai.GenerativeModel('gemini-1.5-flash-latest').count_tokens(contents)
-                tokens_in = count_response.total_tokens
-            except Exception as e:
-                app.logger.error(f"Error saat menghitung token: {e}")
-                tokens_in = 0
+            count_response = genai.GenerativeModel('gemini-1.5-flash-latest').count_tokens(contents)
+            tokens_in = count_response.total_tokens
 
-            # Cek apakah token masih cukup
             if user.tokens_used_today + tokens_in >= MAX_DAILY_TOKENS:
                 return Response("Batas penggunaan harian Anda telah tercapai. Silakan coba lagi besok.", status=429)
 
-            # Perbarui jumlah token yang digunakan di database
             user.tokens_used_today += tokens_in
             db.session.commit()
             
         generation_config = genai.types.GenerationConfig(temperature=temperature)
         
         def stream_response_generator():
-            # ================== PERBAIKAN DI SINI ==================
-            # "Tempelkan" kembali objek user ke sesi saat ini agar
-            # perubahannya bisa dilacak dan disimpan ke database.
-            db.session.add(user)
-            # =======================================================
-            
-            full_response_text = ""
+            with app.app_context():
+                db.session.add(user)
+                full_response_text = ""
 
-            # Logika untuk memilih API yang akan digunakan
-            if model_choice == 'gemini':
-                chat_session = model.start_chat(history=history)
-                response_stream = chat_session.send_message(contents, stream=True, generation_config=generation_config)
-                for chunk in response_stream:
-                    if chunk.text:
-                        yield chunk.text
-                        full_response_text += chunk.text
-                
-                # Setelah respons selesai, hitung token output dan perbarui (khusus Gemini)
-                tokens_out = model.count_tokens(full_response_text).total_tokens
-                user.tokens_used_today += tokens_out
-                db.session.commit()
-
-            elif model_choice.startswith('gptgod_'):
-                # Panggil API GPTGod
-                try:
-                    # Ambil nama model dari pilihan (misalnya 'gpt-4-all')
-                    gptgod_model_name = model_choice.split('_')[1]
-                    headers = {
-                        "Authorization": f"Bearer {GPTGOD_API_KEY}",
-                        "Content-Type": "application/json"
-                    }
-                    data = {
-                        "model": gptgod_model_name,
-                        "messages": [{"role": "user", "content": prompt_for_history}]
-                    }
-                    response = requests.post(GPTGOD_BASE_URL, headers=headers, json=data)
-                    response.raise_for_status()
+                if model_choice == 'gemini':
+                    chat_session = model.start_chat(history=history)
+                    response_stream = chat_session.send_message(contents, stream=True, generation_config=generation_config)
+                    for chunk in response_stream:
+                        if chunk.text:
+                            yield chunk.text
+                            full_response_text += chunk.text
                     
-                    response_json = response.json()
-                    full_response_text = response_json["choices"][0]["message"]["content"]
-                    yield full_response_text
+                    tokens_out = model.count_tokens(full_response_text).total_tokens
+                    user.tokens_used_today += tokens_out
+                    db.session.commit()
 
-                except requests.exceptions.RequestException as e:
-                    full_response_text = f"Terjadi kesalahan dengan GPTGod API: {e}"
-                    yield full_response_text
-            
-            # Simpan riwayat setelah respons selesai
-            history.append({'role': 'user', 'parts': [prompt_for_history]})
-            history.append({'role': 'model', 'parts': [full_response_text]})
-            with open(filepath, 'w', encoding='utf-8') as f:
-                json.dump(history, f, indent=2, ensure_ascii=False)
+                elif model_choice.startswith('gptgod_'):
+                    try:
+                        gptgod_model_name = model_choice.split('_', 1)[1]
+                        headers = {
+                            "Authorization": f"Bearer {GPTGOD_API_KEY}",
+                            "Content-Type": "application/json"
+                        }
+                        data = { "model": gptgod_model_name, "messages": [{"role": "user", "content": prompt_for_history}] }
+                        response = requests.post(GPTGOD_BASE_URL, headers=headers, json=data)
+                        response.raise_for_status()
+                        response_json = response.json()
+                        full_response_text = response_json["choices"][0]["message"]["content"]
+                        yield full_response_text
+                    except requests.exceptions.RequestException as fallback_error:
+                        full_response_text = f"Terjadi kesalahan dengan GPTGod API: {fallback_error}"
+                        yield full_response_text
+                
+                history.append({'role': 'user', 'parts': [prompt_for_history]})
+                history.append({'role': 'model', 'parts': [full_response_text]})
+                with open(filepath, 'w', encoding='utf-8') as f:
+                    json.dump(history, f, indent=2, ensure_ascii=False)
         
         return Response(stream_response_generator(), mimetype='text/plain')
     
     except Exception as e:
         app.logger.error(f"Error saat memproses permintaan chat: {e}")
-        return Response(f"Terjadi kesalahan: {e}", status=500)
+        analyze_error_with_ai(e) # Panggil penganalisis AI
+        return Response("Terjadi kesalahan server internal. Tim kami telah diberitahu dan sedang menanganinya.", status=500)
 
 
 @app.route('/get_tokens_remaining')
@@ -474,7 +519,7 @@ def get_tokens_remaining():
     
     user = User.query.get(session['user_id'])
     MAX_DAILY_TOKENS = 50
-    tokens_remaining = MAX_DAILY_TOKENS - user.tokens_used_today
+    tokens_remaining = max(0, MAX_DAILY_TOKENS - user.tokens_used_today)
     
     return jsonify({'tokens_remaining': tokens_remaining})
 

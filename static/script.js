@@ -21,19 +21,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const menuToggle = document.getElementById('menu-toggle');
     const sidebar = document.querySelector('aside');
-
+    
+    const tokensRemainingEl = document.getElementById('tokens-remaining');
+    const suggestionButtons = document.querySelectorAll('.suggestion-btn');
+    const modelSelector = document.getElementById('model-selector');
+    
+    // Variabel state aplikasi
     let currentConversationId = null;
     let isGenerating = false;
-
-    // Tambahkan elemen untuk menampilkan sisa token
-    const tokensRemainingEl = document.getElementById('tokens-remaining');
-
-    // Ambil semua tombol rekomendasi
-    const suggestionButtons = document.querySelectorAll('.suggestion-btn');
-
-    // Tambahkan elemen untuk memilih model AI
-    const modelSelector = document.getElementById('model-selector');
-
 
     // --- Fungsi Helper ---
     function clearChatBox() {
@@ -48,16 +43,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function hideThinkingIndicator() {
-        if (thinkingIndicator.parentNode) {
-            thinkingIndicator.classList.add('hidden');
-            thinkingIndicator.classList.remove('flex');
-        }
+        thinkingIndicator.classList.add('hidden');
+        thinkingIndicator.classList.remove('flex');
     }
     
     function toggleSubmitButton() {
         const hasText = userInput.value.trim().length > 0;
         const hasImage = imageInput.files.length > 0;
-        submitBtn.disabled = !hasText && !hasImage;
+        submitBtn.disabled = isGenerating || (!hasText && !hasImage);
     }
     
     function addUserMessageWithImage(message, imageFile) {
@@ -70,7 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const imageURL = URL.createObjectURL(imageFile);
             imageHTML = `<img src="${imageURL}" alt="Image Preview" class="max-w-xs rounded-lg mt-2"/>`;
         }
-        const textHTML = message ? `<p class="whitespace-pre-wrap">${message}</p>` : '';
+        const textHTML = message ? `<p class="whitespace-pre-wrap">${escapeHTML(message)}</p>` : '';
 
         messageDiv.innerHTML = `
             <div class="bg-slate-700 rounded-lg p-3 max-w-lg">
@@ -85,9 +78,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function addHistoryMessage(sender, message, conversationId) {
         const messageDiv = document.createElement('div');
-        messageDiv.className = 'flex items-start gap-3';
-        
-        if (sender === 'AI') {
+        const isAI = sender === 'AI';
+        messageDiv.className = `flex items-start gap-3 ${isAI ? '' : 'justify-end'}`;
+
+        if (isAI) {
             const contentHTML = marked.parse(message);
             messageDiv.innerHTML = `
                 <div class="bg-sky-500 rounded-full p-2 text-white text-sm font-bold self-start">AI</div>
@@ -100,34 +94,45 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             `;
         } else {
-            messageDiv.classList.add('justify-end');
             messageDiv.innerHTML = `
-                <div class="bg-slate-700 rounded-lg p-3 max-w-lg"><p class="whitespace-pre-wrap">${message}</p></div>
+                <div class="bg-slate-700 rounded-lg p-3 max-w-lg"><p class="whitespace-pre-wrap">${escapeHTML(message)}</p></div>
                 <div class="bg-indigo-500 rounded-full p-2 text-white text-sm font-bold self-start">You</div>
             `;
         }
+        
         chatBox.appendChild(messageDiv);
-        chatBox.querySelectorAll('pre').forEach(addCopyButton);
-        chatBox.querySelectorAll('pre code').forEach(block => hljs.highlightElement(block));
+        if (isAI) {
+            messageDiv.querySelectorAll('pre').forEach(addCopyButton);
+            messageDiv.querySelectorAll('pre code').forEach(block => hljs.highlightElement(block));
+        }
         chatBox.scrollTop = chatBox.scrollHeight;
     }
     
     function addCopyButton(preElement) {
+        if (preElement.querySelector('.copy-code-btn')) return; // Hindari duplikat tombol
         const copyButton = document.createElement('button');
         copyButton.className = 'copy-code-btn';
         copyButton.innerText = 'Salin';
         preElement.appendChild(copyButton);
     }
 
+    function escapeHTML(str) {
+        const p = document.createElement("p");
+        p.textContent = str;
+        return p.innerHTML;
+    }
+
     // --- Logika Utama Aplikasi ---
     async function loadConversations() {
         try {
             const response = await fetch('/get_conversations');
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             const conversations = await response.json();
+            
             conversationList.innerHTML = '';
             conversations.forEach(conv => {
                 const li = document.createElement('li');
-                li.innerHTML = `<button data-id="${conv.id}" class="w-full text-left p-2 rounded-md hover:bg-slate-700 truncate">${conv.title}</button>`;
+                li.innerHTML = `<button data-id="${conv.id}" class="w-full text-left p-2 rounded-md hover:bg-slate-700 truncate">${escapeHTML(conv.title)}</button>`;
                 conversationList.appendChild(li);
             });
         } catch (error) {
@@ -140,13 +145,17 @@ document.addEventListener('DOMContentLoaded', () => {
         welcomeMessage.classList.add('hidden');
         clearChatBox();
         currentConversationId = id;
+
         try {
             const response = await fetch(`/get_history/${id}`);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             const history = await response.json();
+
             history.forEach(msg => {
                 const sender = msg.role === 'model' ? 'AI' : 'You';
                 addHistoryMessage(sender, msg.parts[0], id);
             });
+
             document.querySelectorAll('#conversation-list button').forEach(btn => {
                 btn.classList.toggle('bg-slate-700', btn.dataset.id === id);
             });
@@ -164,25 +173,23 @@ document.addEventListener('DOMContentLoaded', () => {
         imageInput.value = '';
         imagePreviewContainer.classList.add('hidden');
         toggleSubmitButton();
-        await loadConversations();
-        document.querySelectorAll('#conversation-list button').forEach(btn => btn.classList.remove('bg-slate-700'));
+        
+        document.querySelectorAll('#conversation-list button.bg-slate-700').forEach(btn => {
+            btn.classList.remove('bg-slate-700');
+        });
     }
 
     async function sendFeedback(conversationId, isPositive) {
         try {
             const response = await fetch('/feedback', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     conversation_id: conversationId,
                     is_positive: isPositive
                 }),
             });
-            if (!response.ok) {
-                throw new Error('Gagal mengirim umpan balik');
-            }
+            if (!response.ok) throw new Error('Gagal mengirim umpan balik');
             console.log('Umpan balik berhasil dikirim');
         } catch (error) {
             console.error('Error:', error);
@@ -192,38 +199,36 @@ document.addEventListener('DOMContentLoaded', () => {
     async function updateTokensRemaining() {
         try {
             const response = await fetch('/get_tokens_remaining');
-            if (response.ok) {
-                const data = await response.json();
-                tokensRemainingEl.innerText = data.tokens_remaining;
-            }
+            if (!response.ok) return;
+            const data = await response.json();
+            tokensRemainingEl.innerText = data.tokens_remaining;
         } catch (error) {
             console.error("Gagal memperbarui token:", error);
         }
     }
 
+    // --- Event Listeners ---
     suggestionButtons.forEach(button => {
         button.addEventListener('click', () => {
-            const text = button.innerText;
-            userInput.value = text;
+            userInput.value = button.innerText;
+            userInput.focus();
+            toggleSubmitButton();
             chatForm.dispatchEvent(new Event('submit', { cancelable: true }));
         });
     });
 
-    // --- Event Listeners ---
     newChatButton.addEventListener('click', startNewChat);
+
     conversationList.addEventListener('click', (e) => {
         const button = e.target.closest('button');
         if (button) loadConversationHistory(button.dataset.id);
     });
 
     imageInput.addEventListener('change', () => {
-        if (imageInput.files && imageInput.files[0]) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                imagePreview.src = e.target.result;
-                imagePreviewContainer.classList.remove('hidden');
-            };
-            reader.readAsDataURL(imageInput.files[0]);
+        const file = imageInput.files[0];
+        if (file) {
+            imagePreview.src = URL.createObjectURL(file);
+            imagePreviewContainer.classList.remove('hidden');
         }
         toggleSubmitButton();
     });
@@ -238,7 +243,9 @@ document.addEventListener('DOMContentLoaded', () => {
     userInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && !e.shiftKey) {
             e.preventDefault();
-            chatForm.dispatchEvent(new Event('submit', { cancelable: true }));
+            if (!submitBtn.disabled) {
+                chatForm.dispatchEvent(new Event('submit', { cancelable: true }));
+            }
         }
     });
 
@@ -248,20 +255,32 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // [LOGIKA UTAMA] Pengiriman Form dengan STREAMING
+    // =====================================================================
+    // --- [LOGIKA UTAMA] PENANGANAN SUBMIT FORM DENGAN STREAMING ---
+    // =====================================================================
     chatForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const message = userInput.value.trim();
         const imageFile = imageInput.files[0];
-        if (!message && !imageFile || isGenerating) return;
+        
+        if ((!message && !imageFile) || isGenerating) return;
 
         isGenerating = true;
         toggleSubmitButton();
 
         if (!currentConversationId) {
-            const response = await fetch('/new_chat', { method: 'POST' });
-            const data = await response.json();
-            currentConversationId = data.conversation_id;
+            try {
+                const response = await fetch('/new_chat', { method: 'POST' });
+                if (!response.ok) throw new Error('Gagal memulai chat baru');
+                const data = await response.json();
+                currentConversationId = data.conversation_id;
+            } catch (error) {
+                console.error(error);
+                addHistoryMessage('AI', `Gagal memulai percakapan baru: ${error.message}`, null);
+                isGenerating = false;
+                toggleSubmitButton();
+                return;
+            }
         }
 
         addUserMessageWithImage(message, imageFile);
@@ -269,15 +288,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const formData = new FormData();
         formData.append('conversation_id', currentConversationId);
-        
         formData.append('temperature', temperatureSlider.value);
-
+        formData.append('model_choice', modelSelector.value);
         if (message) formData.append('message', message);
         if (imageFile) formData.append('image', imageFile);
         
-        // Tambahkan pilihan model ke formData
-        formData.append('model_choice', modelSelector.value);
-
         userInput.value = '';
         userInput.style.height = 'auto';
         imageInput.value = '';
@@ -286,10 +301,26 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch('/chat', { method: 'POST', body: formData });
             
+            hideThinkingIndicator();
+
+            // =====================================================================
+            // --- PERBAIKAN: PENANGANAN ERROR YANG LEBIH BAIK ---
+            // =====================================================================
             if (!response.ok) {
                 const errorText = await response.text();
-                addHistoryMessage('AI', errorText, currentConversationId);
-                return; // Berhenti di sini jika ada kesalahan
+                let displayMessage = `Terjadi kesalahan (Kode: ${response.status}). Coba lagi nanti.`;
+
+                if (response.status === 500) {
+                    displayMessage = "🛠️ Maaf, terjadi masalah di server kami. Tim teknis sudah diberitahu dan sedang menanganinya.";
+                } else if (response.status === 429) {
+                    displayMessage = "⌛ Batas penggunaan harian Anda telah tercapai. Silakan coba lagi besok atau tingkatkan paket Anda.";
+                } else if (errorText) {
+                    // Jika ada pesan error dari server, gunakan itu
+                    displayMessage = errorText;
+                }
+                
+                // Melempar error agar ditangkap oleh blok catch di bawah
+                throw new Error(displayMessage);
             }
 
             const aiMessageContainer = document.createElement('div');
@@ -325,27 +356,32 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             responseDiv.appendChild(feedbackContainer);
 
-            const isFirstMessage = chatBox.querySelectorAll('.justify-end').length === 1;
-            if (isFirstMessage) await loadConversations();
+            const isFirstUserMessage = chatBox.querySelectorAll('.justify-end').length === 1;
+            if (isFirstUserMessage) {
+                await loadConversations();
+                 document.querySelector(`#conversation-list button[data-id="${currentConversationId}"]`)?.classList.add('bg-slate-700');
+            }
 
         } catch (error) {
-            addHistoryMessage('AI', `Terjadi kesalahan: ${error.message}`);
+            hideThinkingIndicator();
+            addHistoryMessage('AI', error.message, currentConversationId);
         } finally {
             isGenerating = false;
             toggleSubmitButton();
-            hideThinkingIndicator(); // Pindahkan panggilan ke sini
             updateTokensRemaining();
         }
     });
 
     chatBox.addEventListener('click', function(e) {
-        if (e.target && e.target.classList.contains('copy-code-btn')) {
-            const pre = e.target.closest('pre');
+        const copyBtn = e.target.closest('.copy-code-btn');
+        if (copyBtn) {
+            const pre = copyBtn.closest('pre');
             const code = pre.querySelector('code').innerText;
             navigator.clipboard.writeText(code).then(() => {
-                e.target.innerText = 'Disalin!';
-                setTimeout(() => { e.target.innerText = 'Salin'; }, 2000);
+                copyBtn.innerText = 'Disalin!';
+                setTimeout(() => { copyBtn.innerText = 'Salin'; }, 2000);
             });
+            return;
         }
         
         const feedbackBtn = e.target.closest('.feedback-btn');
@@ -355,13 +391,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             sendFeedback(conversationId, isPositive);
             
-            const allBtns = feedbackBtn.closest('.feedback-container').querySelectorAll('.feedback-btn');
-            allBtns.forEach(btn => {
-                btn.classList.add('inactive');
+            const container = feedbackBtn.closest('.feedback-container');
+            container.querySelectorAll('.feedback-btn').forEach(btn => {
                 btn.disabled = true;
+                btn.classList.add('opacity-50');
             });
-            feedbackBtn.classList.remove('inactive');
-            feedbackBtn.classList.add('active');
         }
     });
 
