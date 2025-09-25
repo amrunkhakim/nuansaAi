@@ -34,7 +34,7 @@ app.config.update(
 
 db = SQLAlchemy(app)
 oauth = OAuth(app)
-
+redirect_uri = os.getenv('GOOGLE_REDIRECT_URI')
 google = oauth.register(
     name='google',
     client_id=os.getenv("GOOGLE_CLIENT_ID"),
