@@ -154,7 +154,7 @@ def index():
     if 'user_id' in session:
         user = User.query.get(session['user_id'])
         # Mengirimkan sisa token ke template
-        return render_template('index.html', user=user, tokens_remaining=250000-user.tokens_used_today)
+        return render_template('index.html', user=user, tokens_remaining=50-user.tokens_used_today)
     return redirect(url_for('show_login_page'))
 
 
@@ -411,7 +411,7 @@ def chat():
     if not model: return Response("Model AI tidak terinisialisasi.", status=500)
     
     user = User.query.get(session['user_id'])
-    MAX_DAILY_TOKENS = 250000 # Batasan harian untuk token
+    MAX_DAILY_TOKENS = 50 # Batasan harian untuk token
     
     # Reset token jika hari sudah berganti
     if user.last_request_date != datetime.date.today():
@@ -532,7 +532,7 @@ def get_tokens_remaining():
         return jsonify({"error": "Unauthorized"}), 401
     
     user = User.query.get(session['user_id'])
-    MAX_DAILY_TOKENS = 250000
+    MAX_DAILY_TOKENS = 50
     tokens_remaining = MAX_DAILY_TOKENS - user.tokens_used_today
     
     return jsonify({'tokens_remaining': tokens_remaining})

@@ -286,12 +286,10 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const response = await fetch('/chat', { method: 'POST', body: formData });
             
-            // Cek respons non-OK terlebih dahulu
             if (!response.ok) {
                 const errorText = await response.text();
                 addHistoryMessage('AI', errorText, currentConversationId);
-                hideThinkingIndicator();
-                return;
+                return; // Berhenti di sini jika ada kesalahan
             }
 
             const aiMessageContainer = document.createElement('div');
@@ -335,6 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
         } finally {
             isGenerating = false;
             toggleSubmitButton();
+            hideThinkingIndicator(); // Pindahkan panggilan ke sini
             updateTokensRemaining();
         }
     });
